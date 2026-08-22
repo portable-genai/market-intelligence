@@ -1,0 +1,98 @@
+# Common-base practices audit
+
+- **Repo:** `market-intelligence`
+- **Catalog id:** Mkt1 (package `market_intelligence`, profile env `MKT_INTEL_PROFILE`; the
+  `MARKET_PROFILE`-looking token in the tree is the `MARKET_PROFILES` domain constant, not an env var)
+- **Catalogue reference:** [`common-base-practices.md`](https://github.com/portable-genai/.github/blob/main/common-base-practices.md) (checks A1..G7)
+- **Authoritative source:** reconciled to the maintainer's cross-repository audit matrix, authoritative on verdicts.
+
+Applicability: Mkt1 ships a UI (`ui/`) and Terraform (`infra/terraform/`), so `[ui]` and
+`[infra]` checks apply. It is a deep, cited market and competitor research agent over
+public-web plus aggregate and internal-corpus data, so it holds no per-customer records and
+no customer PII: the PII and object-level-tenancy checks (C2, C3, C4) are N-A by design and
+justified below. **Load-bearing** checks (a FAIL breaks a shared catalog guarantee) are
+A1-A6, C1-C5, D1-D3 and E1.
+
+| Check | Verdict | Evidence / gap |
+|---|---|---|
+| **A1** Hexagonal core, stdlib-only domain `[all]` **(load-bearing)** | PASS | `grep -rE "google\|fastapi\|httpx\|pydantic\|boto3\|azure" src/market_intelligence/domain/` returns nothing. |
+| **A2** Ports are `@runtime_checkable` Protocols, re-exported once `[all]` **(load-bearing)** | PASS | 7 port files (`ports/*.py`) each carry `@runtime_checkable`; all re-exported from `ports/__init__.py`; `test_all_protocols_are_runtime_checkable` asserts it. |
+| **A3** Swappable profiles by one config value `[all]` **(load-bearing)** | PASS | `MKT_INTEL_PROFILE = local\|gcp\|platform\|onprem`; per-port `adapters:` map in `config/settings.yaml`; the offline suite (119 passed) runs on `pip install -e ".[dev]"` with no GCP SDK. |
+| **A4** One adapter constructor `Adapter(settings)` `[all]` **(load-bearing)** | PASS | `tests/contract/test_port_parity.py::test_adapter_constructs_with_single_settings_arg` parametrises over `SDK_FREE_PROFILES` (onprem, local) x every port. |
+| **A5** Lazy cloud imports in cloud adapters `[all]` **(load-bearing)** | PASS | `grep -n "^from google\|^import google" src/market_intelligence/adapters/gcp/*.py` returns nothing; `test_gcp_adapters_import_safe.py` imports every gcp module with no SDK. |
+| **A6** Contract tests enforce the hexagon; port map cannot drift `[all]` **(load-bearing)** | PASS | Structural parity, single-settings-arg, runtime_checkable and onprem+local binding-presence tests pass in `test_port_parity.py`, now joined by `test_port_protocols_matches_settings_adapters` (reverse set-equality: fails loudly if a `settings.adapters` binding has no `PORT_PROTOCOLS` entry OR a stale `PORT_PROTOCOLS` entry has no binding). New `tests/contract/test_behavioral_parity.py` proves boundary behaviour: for the knowledge-base, guardrail and audit ports the `local` adapter is byte-for-byte deterministic across reruns (same frozen domain objects and `to_jsonable` payloads) while BOTH `onprem` and the not-yet-wired `platform` placeholders fail fast with `NotImplementedError`; a parametrized test asserts every scaffolded `platform` placeholder (`knowledge_base`, `guardrail`, `audit`, `agent_registry`) constructs then raises; and an end-to-end test runs the full brief pipeline deterministically under `local` and fails fast under `onprem` with only a profile change. `evaluation` (wired to Hrz4) and `review_router` (wired to Hrz7) are excluded and covered by their own respx / routing tests. |
+| **A7** Kernel vs vertical split in the domain `[all]` | PASS | `domain/kernel.py` owns the provider-neutral `ThinkingLevel`; vertical `models.py` imports it from the kernel, never the reverse. `test_kernel_boundary.py` also prevents `MarketBrief`, `CompetitorAnalysis` or `TrendScore` leaking into the kernel. |
+| **A8** Consume platform horizontals via thin delegates `[all]` | PASS | `adapters/platform/remote_*.py` are 25 to 127 lines, marshalling only, no business logic; guardrail, KB, audit, evaluation and registry each have a `platform` binding; no second in-repo implementation of a horizontal outside a port. (The platform delegates are currently phase stubs, see C7.) |
+| **B1** Consequential math is deterministic, pure, replayable `[agentic]` | PASS | `domain/dedup_service.py`, `diff_service.py`, `trend_service.py`, `swot_service.py` decide everything consequential (dedup, competitor diff, trend scoring, SWOT); each is pure stdlib and unit-tested; the LLM only narrates the already-computed result (`brief_service._narrate`). |
+| **B2** Every claim carries a citation; empty retrieval is a hard error `[agentic]` | PASS | `Claim.citations` and `MarketBrief.citations`/`CompetitorAnalysis.citations`; `brief_service.build_brief` raises `ResearchEmptyError` when no sources or claims survive dedup, never emitting an ungrounded brief. |
+| **B3** Maker-checker on every consequential output `[agentic]` | PASS | `MarketBrief` and `CompetitorAnalysis` are assembled with `requires_human_review=True`; `test_brief_pipeline.py` asserts both are `True`; audit decision is `ESCALATED` when review is required. |
+| **B4** Bank-owned policy numbers in config, defaults = reference `[all]` | PASS | `PolicySettings` and `config/settings.yaml:policy` own every dedup, trend and SWOT number. `make_brief_service` threads the validated policy into the pure engines; `test_policy_wiring.py` proves an adopter override changes the constructed decision services without editing domain code. Defaults are explicitly reference values. |
+| **B5** Open taxonomy: `StrEnum` vocabularies, engines typed on `str` `[all]` | PASS | All twelve vocabularies are `StrEnum` (via the shared `hex-service-kit` commons): members ARE their wire values and `.value` call sites are unchanged. |
+| **C1** Identity resolved server-side; client actor/ACL discarded `[all]` **(load-bearing)** | PASS | `api/schemas.py` carries no `actor` field; `api/security.py::get_principal` resolves a verified `Principal` via the `IdentityPort` on every route (`CurrentPrincipal`); the audit actor flows from `principal.actor`; local profile resolves seeded personas from the `X-Dev-Persona` header with no IdP. |
+| **C2** Object-level authz derived server-side; tenant isolation by data tags `[all]` **(load-bearing)** | N-A | The knowledge base is a single shared internal research / brand corpus; `KnowledgeBasePort.search(RetrievalQuery)` carries no principals and the port declares no ACL contract. This vertical holds no per-tenant or per-customer objects to isolate (market/competitor research from public plus aggregate data), so object-level authorization is absent by design. Identity is still verified server-side (C1). |
+| **C3** Redact before everything `[agentic]` **(load-bearing)** | N-A | Inputs are market topics and competitor names; outputs are briefs synthesised from public-web and aggregate research. No customer PII enters the pipeline, so there is no PII de-identification boundary. Guardrail INPUT and OUTPUT screening (`brief_service._guard`) is present around the LLM. |
+| **C4** Jurisdiction-driven PII packs keep the gate honest `[agentic]` **(load-bearing)** | N-A | No `domain/pii_patterns.py` and no PII to detect (see C3). The jurisdiction axis here is JP/AU/SG residency region and locale, not national-identifier packs. |
+| **C5** Fail-closed defaults everywhere `[all]` **(load-bearing)** | PASS | `main()` binds via `hex_service_kit.resolve_bind_host` (loopback under the no-auth local profile unless `MKT_INTEL_ALLOW_INSECURE_DEMO=1`); Makefile `API_HOST ?= 127.0.0.1`; CORS is `cors_allowlist` (explicit `MKT_INTEL_CORS_ORIGINS`, never `*`; dev-origin fallback ONLY under local). Proven by `tests/unit/test_netdefaults.py`. |
+| **C6** Security-header baseline on every surface `[ui]` | PASS | The UI retains its single nonce-CSP emitter and hydration proof. API middleware now also emits `nosniff` and `Referrer-Policy: no-referrer`, with HSTS only for `gcp`, `platform` and `onprem`; local HTTP remains usable. `test_api_security_headers.py` proves both branches. |
+| **C7** S2S calls authenticated, https-only outside loopback `[all]` | N-A | No outbound service-to-service delegate is implemented: the `platform` adapters are unbuilt `NotImplementedError` phase stubs (default `http://localhost:...`), there is no `_s2s.py` helper, and the `gcp` profile talks to managed services via the Google SDK (ADC). Blocked by the catalog `plan-hrz-s2s-auth`. Non-load-bearing. (The one real outbound call, the Hrz4 eval client, attaches the shared S2S bearer and enforces the https-only guard via `agent-eval-kit`/`hex-service-kit`; the other delegates remain platform-phase stubs, so the N-A stands.) |
+| **C8** Web login flow hardening `[ui]` | N-A | The repo owns no login flow: secure profiles consume a Cloud IAP injected assertion, local uses seeded personas, onprem is a placeholder. No OAuth/OIDC code to harden. |
+| **C9** Tamper-evident audit with honest limits `[all]` | PASS | `LocalAppendOnlyAuditAdapter` wraps the shared `hex_service_kit.audit.HashChainedAuditLog`: SHA-256 chain over canonical JSON, UPDATE/DELETE rejected by triggers, JSONL export/restore, `verify_chain()` exposed, honest-limits docstring. Proven by `tests/unit/test_audit_chain.py`. Managed profile keeps the locked WORM bucket. |
+| **C10** No secret values in the repo `[all]` | PASS | `config/settings.yaml` names only `*_env` variables; `grep -riE "secret\|token\|key\|password" config/` finds no literal secret material. |
+| **D1** Locked, reproducible installs everywhere `[all]` **(load-bearing)** | PASS | Committed `requirements-dev.lock` + `requirements-gcp.lock` (uv pip compile, py3.12), ruff pinned exactly, Dockerfile installs from the lock; the commons packages are pinned by tag, with the exact SHA recorded in both locks. |
+| **D2** Digest-pinned images, SHA-pinned Actions, dependabot, CI audit `[all]` **(load-bearing)** | PASS | Base image digest-pinned, Actions SHA-pinned, `.github/dependabot.yml` present, `pip-audit` + `npm audit` hard CI gates. |
+| **D3** Whole gate runs offline, zero org secrets `[all]` **(load-bearing)** | PASS | `ci.yaml` and `eval-gate.yaml` set `MKT_INTEL_PROFILE: local` with no `secrets.` references; the gate runs ruff, ruff format check, mypy, pytest and `eval/run_eval.py` offline. |
+| **D4** Non-root, minimal, healthchecked container `[infra]` | PASS | `Dockerfile`: multi-stage, `USER appuser` (uid 10001), `HEALTHCHECK` on `/healthz`, `EXPOSE 8100`, `MKT_INTEL_PROFILE=gcp` set explicitly; the slim runtime stage copies the venv and carries no build toolchain. |
+| **D5** Deploy-time residency/sovereignty, parameterised `[infra]` | PASS | The existing regional Org Policy, CMEK, VPC-SC and WORM posture remains parameterised. CI and `make tf-validate` now run `terraform fmt -check -recursive`, backend-free init and `terraform validate` without credentials. Local validation passed with google/google-beta 6.50.0; live enforcement evidence remains deployment evidence, not a code gap. |
+| **E1** Offline eval smoke guards merge; Hrz4 owns promotion `[agentic]` **(load-bearing)** | PASS | `eval/run_eval.py` has the `--mode smoke|gate` split via the shared `agent-eval-kit` scaffold, and `remote_evaluation.py` is re-based on the shared `PromotionGateClient` (registered bundle `mkt1-market-intel` unchanged, S2S bearer headers attached, https-only base-URL guard enforced: the respx contract tests use an https fixture URL because the kit client refuses plaintext non-loopback). Gate mode refuses to run outside `MKT_INTEL_PROFILE=platform|gcp`. `--use-gcp` kept as an alias. |
+| **E2** Safety metric with strictest threshold, no false green `[agentic]` | PASS | `review_safety >= 0.99` now compares the product flag with the independent golden row's `expected_requires_human_review`, and `assert_each_can_go_red` plants a bypassed-review result before every gate. `test_eval_not_falsely_green.py` proves the green and red cases. PII remains N-A for this public and aggregate research vertical. |
+| **E3** Fixtures and golden data obviously fictional `[all]` | PASS | `eval/datasets/golden_briefs.jsonl` and `adapters/local/_seed.py` are marked OBVIOUSLY-FICTIONAL: company names suffixed FICTIONAL, all URLs at `example.test`; `CONTRIBUTING.md` #10 and the seed docstrings carry the live-data sign-off warning. |
+| **F1** Demo is code, offline, one command, presenter-paced `[all]` | PASS | `make demo` runs `scripts/demo.py` (real `MarketBriefService` over local adapters, offline, renders the audit-first static HTML); `make demo-server` runs the presenter-controlled `scripts/demo_server.py`. No cloud or API key. |
+| **F2** Demo cannot rot silently `[all]` | PASS | Three layers, all executed. (1) Stable evidence hooks: the renderer and demo server emit `data-panel`, `data-brief-*`, `data-claim-*`, `data-citation*` attributes carrying every load-bearing figure. (2) In-process, inside `make gate`: `scripts/demo_selftest.py` constructs every live `DemoSession` brief, checks citations and maker-checker state, renders and advances all four steps, then proves reset. (3) Served stage, also inside `make gate`: the same script starts the REAL HTTP server on an ephemeral port, walks every presenter step over HTTP and compares each hook in the SERVED bytes against the value the RUNNING app computed. (4) Browser stage: `tests/browser/test_served_demo_ui.py` drives the same served pages through headless Chromium pinned by the `[demo]` extra (`playwright==1.62.0`); `make demo-browser` runs it. RED proof: planting a stale hard-coded brief citation figure and stripping one `data-panel` hook failed BOTH the served stage and the browser stage, each defect independently; restoring made both green. Scope note: the browser stage self-skips when the `[demo]` extra is absent, so a day-one offline install still gates without a browser download; the served stage is unconditional. |
+| **F3** Portability claim is executable `[all]` | PASS | `scripts/portability_demo.py` is an offline gating executable. It runs the non-integration suite covering profile swap, port parity, identity and hash-chain audit contracts, verifies the domain imports no Google SDK, and states the hosted durability and performance limits it cannot prove. `make gate` runs it. |
+| **G1** Declared doc authority order, kept true `[all]` | PASS | Root `AGENTS.md` declares `SPEC.md > ARCHITECTURE.md > COMPLIANCE.md > README.md > demo/FAQ`, with executable tests as shipped evidence. The documents describe the current four profiles, ADK surface and portability limits consistently. |
+| **G2** Compliance mapping table + adopter-owned crosswalk `[all]` | PASS | COMPLIANCE.md present: P-01..P-13 + R1..R8 mapping with an Evidence column naming real files, plus an adopter-owned JP/AU/SG regulator crosswalk appendix. |
+| **G3** Documented, mechanised fork path `[all]` | PASS | `docs/ADOPTING.md` states the kernel/vertical boundary (kernel machinery + engines in `domain/`, ports; vertical `MarketBrief`/`CompetitorAnalysis` + `brief_service`), the core-vs-adopter-owned file list, and a human-decision checklist. `scripts/rename_fork.py` is a one-pass, dry-run-first rebrand of the package (`market_intelligence`), CLI (`mkt-intel`), env prefix (`MKT_INTEL_`) and resource ids; the `--dry-run` prints its plan and writes nothing. |
+| **G4** Retired `[all]` | N-A (retired) | Retired practice. Releases are tracked by git tag and the `pyproject.toml` version. |
+| **G5** Role-specific FAQs referencing sibling systems `[all]` | PASS | `docs/faq/` present: `README.md` index + `security-faq.md`, `portability-faq.md`, `features-faq.md`, `adoption-faq.md`, `compliance-faq.md`, tailored to this vertical (four profiles, ports, no-customer-PII stance, JP/AU/SG residency, the offline exit story) and naming the owning catalog ids for adjacent capabilities (Hrz1, Hrz2, Hrz3, Hrz4, Hrz5, Hrz7, Rsk1/Rsk3/Rgc9). |
+| **G6** Contribution docs cover full extension touch list `[all]` | PASS | `CONTRIBUTING.md` has explicit adapter and new-port checklists covering Protocol, re-export, every profile binding, constructor and behavior parity, composition-root wiring, tests and evidence docs. |
+| **G7** Markdown discipline: minimise em-dashes, validate mermaid `[all]` | PASS | The em-dash count is 0 across `README.md`, `SPEC.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `DEMO.md` and `docs/embedding-and-identity.md` (and this scorecard). |
+
+**Verdict counts:** 35 PASS, 0 PARTIAL, 0 FAIL, 6 N-A (41 checks). G3/G5 rest on
+`docs/ADOPTING.md` + `scripts/rename_fork.py` and `docs/faq/*`; G4 is a retired practice;
+G2 rests on `COMPLIANCE.md`; A6 rests on the set-equality drift guard plus
+`test_behavioral_parity.py`; D1/D2 rest on the supply-chain sweep; B5/C5/C9/E1 rest on the
+shared commons adoption.
+
+Load-bearing (A1-A6, C1-C5, D1-D3, E1): A1-A6 PASS; C1 PASS, C2/C3/C4 N-A
+(no customer PII, public plus aggregate data), C5 PASS; D1/D2/D3 PASS; E1 PASS. No load-bearing
+FAIL or PARTIAL remains.
+
+## Gaps carried to systems/
+
+**Mandated artifacts and the agent runtime.** `COMPLIANCE.md` (the P-01..P-13 and R1..R8
+principle-to-control mapping with an Evidence column naming real repo files, plus the
+adopter-owned JP/AU/SG regulator crosswalk appendix), `docs/runbook.md` and
+`docs/onprem-migration.md` are present, and `src/market_intelligence/agent/` is a real ADK
+runtime (`google-adk` dependency; `root_agent.py` / `grounding_agent.py` `LlmAgent`s; `tools.py`
+tool wiring; `agent_card.py` A2A AgentCard; `callbacks.py` model-boundary guardrail and audit).
+The Mkt1 `Capability gaps` column in systems/ is clear.
+
+**Load-bearing checks, current evidence.** A6 rests on the reverse set-equality drift guard plus
+`tests/contract/test_behavioral_parity.py`; D1/D2 rest on the supply-chain sweep
+(compiled lockfiles installed in CI and the Dockerfile; digest-pinned base image, SHA-pinned
+Actions, `.github/dependabot.yml`, `pip-audit` / `npm audit` CI gates); C5 and E1 rest on the
+shared commons adoption (loopback default with profile-gated CORS; the `--mode smoke|gate`
+split with Hrz4 as the documented promotion authority). No load-bearing FAIL or PARTIAL remains.
+
+**Adopter-doc quality artifacts.** These are additive files; no existing source changed:
+`docs/faq/` (`README.md` index + the five role
+FAQs naming the owning catalog ids for adjacent capabilities; G5), and `docs/ADOPTING.md` +
+`scripts/rename_fork.py` (the kernel/vertical boundary, the core-vs-adopter file list, the
+human-decision checklist, and a one-pass dry-run-first rename script; G3). The gate stays
+green (ruff, format, mypy, 151 tests, eval gate PASS) and the rename script's `--dry-run`
+writes nothing.
+
+No local quality gap remains in this matrix. F2 passes with the
+served stage and the pinned headless-browser walkthrough described in its row above.
+C2/C3/C4/C7/C8 are N-A and justified above; managed enforcement and performance remain
+deployment evidence and are not claimed by any offline gate here.

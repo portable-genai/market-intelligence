@@ -1,0 +1,16 @@
+# Groundedness rubric for the D1 market brief.
+#
+# Every claim in the brief summary and every material competitor delta must be backed by
+# at least one Citation. The offline gate (eval/run_eval.py) enforces the threshold below;
+# the production Gen AI evaluation service uses the same metric name pre-promotion.
+metric: brief_groundedness
+threshold: 0.80
+description: >-
+  Fraction of briefs whose narrative and material competitor deltas all carry at least one
+  citation. A brief built on uncited claims fails.
+companion_metrics:
+  citation_accuracy:
+    threshold: 0.90
+    description: >-
+      Fraction of cited source ids that appear in the retrieved / derived evidence set (no
+      fabricated citations).

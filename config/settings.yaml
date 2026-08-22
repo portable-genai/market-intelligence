@@ -1,0 +1,153 @@
+# Market Intelligence and Competitor Analysis (D1) — runtime configuration.
+#
+# Switch the entire managed stack to on-prem by setting MKT_INTEL_PROFILE=onprem
+# (or profile: onprem below). Nothing in src/market_intelligence/domain changes.
+# MKT_INTEL_PROFILE=local runs the whole pipeline offline (SQLite FTS5 + deterministic
+# deep-research synthesizer + deterministic LLM), with NO Google Cloud SDK required.
+#
+# D1 is generic and APAC: the active vertical (banking | online_retail) and market
+# (JP | AU | SG) are settings, and each market's residency region / locales come from the
+# per-market profiles below (config + seed), never a hard-coded branch.
+
+project_id: ${GOOGLE_CLOUD_PROJECT:-your-gcp-project}
+region: asia-southeast1                 # default residency region; per-market overrides apply
+profile: ${MKT_INTEL_PROFILE:-}         # local | gcp | platform | onprem. NO fallback on purpose: an unset MKT_INTEL_PROFILE is "no choice", which binds the SDK-free adapters but grants none of the local relaxations (no CORS dev origins, no dev-persona identity). Name the profile deliberately: MKT_INTEL_PROFILE=local for a dev or demo run, =gcp for a real deployment.
+vertical: ${MKT_VERTICAL:-banking}      # banking | online_retail
+market: ${MKT_MARKET:-SG}               # JP | AU | SG
+grounding_enabled: ${MKT_GROUNDING_ENABLED:-true}
+
+models:
+  reasoning: gemini-3.5-flash           # GA — brief / competitor narration (thinking=high)
+  triage: gemini-3.1-flash-lite         # GA — routing / triage / guardrail pre-checks
+  hard_reasoning: gemini-3.1-pro        # Preview — OFF unless use_hard_reasoning=true
+  use_hard_reasoning: false
+
+deep_research:
+  model: gemini-3.5-flash
+  max_sources: 12
+  grounding_tool: google_search
+
+knowledge_base:
+  base_url_env: HRZ_KB_URL              # A2 Enterprise KB (D1's internal-research store)
+  data_store_id: mkt-research-corpus    # only used by the standalone GCP File Search adapter
+  location: asia-southeast1
+  top_k: 10
+
+model_armor:
+  template_id: mkt-intel-guardrail
+  host: modelarmor.asia-southeast1.rep.googleapis.com
+
+logging:
+  log_name: market-intelligence-audit
+  bucket: market-intelligence-worm
+  retention_days: 2557                  # ~7 years; bucket is locked (irreversible) in prod
+
+agent_engine:
+  resource_name: ${MKT_AGENT_ENGINE:-}
+  display_name: market-intelligence
+
+# Local profile stores (SDK-free). Empty paths default under ~/.market_intelligence/;
+# tests use ":memory:" for ephemeral, deterministic SQLite. No Google Cloud here.
+local:
+  db_path: ${MKT_LOCAL_DB:-}            # SQLite FTS5 internal-corpus index
+  audit_path: ${MKT_LOCAL_AUDIT:-}      # append-only local audit (WORM stand-in)
+  seed_path: ${MKT_LOCAL_SEED:-}        # research-corpus seed JSON ("" => bundled fictional seed)
+
+# Adopter-owned decision policy. These are reference defaults, not regulatory advice.
+policy:
+  claim_similarity_threshold: 0.6
+  claim_min_tokens: 1
+  trend_half_life_days: 30.0
+  trend_recent_window_days: 30
+  trend_rising_band: 0.6
+  trend_fading_band: 0.3
+  swot_attractiveness_weight: 0.6
+  swot_right_to_win_weight: 0.4
+  swot_opportunity_trend_score: 0.5
+  swot_max_options: 5
+
+# Per-market residency regions and locales (config + seed, NEVER hard-coded in a branch).
+# JP -> Tokyo, AU -> Sydney, SG -> Singapore; the region is selectable at deploy and
+# validated by config.market_profile().
+markets:
+  JP:
+    region: asia-northeast1
+    locales: [ja, en]
+    currency: JPY
+  AU:
+    region: australia-southeast1
+    locales: [en]
+    currency: AUD
+  SG:
+    region: asia-southeast1
+    locales: [en]
+    currency: SGD
+
+# ----------------------------------------------------------------------------- #
+# Port -> adapter bindings. The container picks the entry for the active profile,
+# falling back to the 'gcp' entry. These dotted paths are the build contract:
+# each adapter class takes a single Settings argument.
+# ----------------------------------------------------------------------------- #
+adapters:
+  research:
+    gcp: market_intelligence.adapters.gcp.deep_research:GeminiDeepResearchAdapter
+    platform: market_intelligence.adapters.gcp.deep_research:GeminiDeepResearchAdapter
+    local: market_intelligence.adapters.local.research:LocalDeepResearchAdapter
+    onprem: market_intelligence.adapters.onprem.research:OnPremResearchAdapter
+  knowledge_base:
+    gcp: market_intelligence.adapters.gcp.file_search_kb:FileSearchKnowledgeBaseAdapter
+    platform: market_intelligence.adapters.platform.remote_knowledge_base:RemoteKnowledgeBaseAdapter
+    local: market_intelligence.adapters.local.knowledge_base:LocalKnowledgeBaseAdapter
+    onprem: market_intelligence.adapters.onprem.knowledge_base:OnPremKnowledgeBaseAdapter
+  llm:
+    gcp: market_intelligence.adapters.gcp.gemini_llm:GeminiLLMAdapter
+    platform: market_intelligence.adapters.gcp.gemini_llm:GeminiLLMAdapter
+    local: market_intelligence.adapters.local.llm:LocalDeterministicLLMAdapter
+    onprem: market_intelligence.adapters.onprem.llm:OnPremLLMAdapter
+  guardrail:
+    gcp: market_intelligence.adapters.gcp.model_armor_guardrail:ModelArmorGuardrailAdapter
+    platform: market_intelligence.adapters.platform.remote_guardrail:RemoteGuardrailAdapter
+    local: market_intelligence.adapters.local.guardrail:LocalHeuristicGuardrailAdapter
+    onprem: market_intelligence.adapters.onprem.guardrail:OnPremGuardrailAdapter
+  audit:
+    gcp: market_intelligence.adapters.gcp.cloud_logging_audit:CloudLoggingAuditAdapter
+    platform: market_intelligence.adapters.platform.remote_audit:RemoteAuditAdapter
+    local: market_intelligence.adapters.local.audit:LocalAppendOnlyAuditAdapter
+    onprem: market_intelligence.adapters.onprem.audit:OnPremAuditAdapter
+  tracer:
+    gcp: market_intelligence.adapters.gcp.cloud_trace_tracer:CloudTraceTracerAdapter
+    platform: market_intelligence.adapters.gcp.cloud_trace_tracer:CloudTraceTracerAdapter
+    local: market_intelligence.adapters.local.tracer:LocalNoopTracerAdapter
+    onprem: market_intelligence.adapters.onprem.tracer:OnPremTracerAdapter
+  evaluation:
+    gcp: market_intelligence.adapters.gcp.genai_eval:GenAiEvalAdapter
+    platform: market_intelligence.adapters.platform.remote_evaluation:RemoteEvaluationAdapter
+    local: market_intelligence.adapters.local.evaluation:LocalOfflineEvalAdapter
+    onprem: market_intelligence.adapters.onprem.evaluation:OnPremEvalAdapter
+  agent_registry:
+    gcp: market_intelligence.adapters.gcp.a2a_registry:A2ARegistryAdapter
+    platform: market_intelligence.adapters.platform.remote_registry:RemoteRegistryAdapter
+    local: market_intelligence.adapters.local.registry_agent:LocalAgentRegistryAdapter
+    onprem: market_intelligence.adapters.onprem.registry_agent:OnPremAgentRegistryAdapter
+  tool_catalog:
+    gcp: market_intelligence.adapters.gcp.mcp_tool_catalog:McpToolCatalogAdapter
+    platform: market_intelligence.adapters.gcp.mcp_tool_catalog:McpToolCatalogAdapter
+    local: market_intelligence.adapters.local.tool_catalog:LocalToolCatalogAdapter
+    onprem: market_intelligence.adapters.onprem.tool_catalog:OnPremToolCatalogAdapter
+  # Server-side, verified identity (never a client-asserted actor). local = seeded dev
+  # personas (no IdP); gcp / platform = verify the Cloud IAP-injected JWT assertion;
+  # onprem = fail-fast placeholder for the client's own enterprise IdP.
+  identity:
+    gcp: market_intelligence.adapters.gcp.iap_identity:IapIdentityAdapter
+    platform: market_intelligence.adapters.gcp.iap_identity:IapIdentityAdapter
+    local: market_intelligence.adapters.local.identity:LocalPersonaIdentityAdapter
+    onprem: market_intelligence.adapters.onprem.identity:OnPremIdentityAdapter
+  # Rule R8: an escalated brief (requires_human_review) is ROUTED to the Hrz7 Human-Review &
+  # Maker-Checker Console via the shared review-kit, never terminated in a local boolean.
+  # local enqueues to a transactional outbox so the routing path runs offline; gcp / platform
+  # submit over S2S to Hrz7's service intake; onprem is the fail-fast sovereign placeholder.
+  review_router:
+    gcp: market_intelligence.adapters.platform.review_router:PlatformReviewRouter
+    platform: market_intelligence.adapters.platform.review_router:PlatformReviewRouter
+    local: market_intelligence.adapters.local.review_router:LocalReviewRouter
+    onprem: market_intelligence.adapters.onprem.review_router:OnPremReviewRouter

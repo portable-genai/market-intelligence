@@ -1,0 +1,38 @@
+# terraform.tfvars.example : concrete sample values for a Singapore-resident deploy.
+#
+# Copy to terraform.tfvars and fill in your own ids. Do NOT commit terraform.tfvars.
+# Region/zone default to Singapore. All values below are fictional.
+
+project_id = "acme-mkt-intel-sg-prod"
+
+# Residency (SPEC 2). `region` is chosen at deploy time and must be a member of
+# `allowed_regions`; both default to Singapore, so these lines restate the secure default.
+# A per-market stack sets BOTH (JP: asia-northeast1, AU: australia-southeast1). Extending
+# `allowed_regions` is the deliberate residency review point and belongs only after
+# confirming the managed stack and your obligations in that region.
+allowed_regions = ["asia-southeast1"]
+region          = "asia-southeast1"
+zone            = "asia-southeast1-a"
+
+# Fully-qualified API image in Artifact Registry (asia-southeast1).
+container_image = "asia-southeast1-docker.pkg.dev/acme-mkt-intel-sg-prod/mkt/market-intelligence:0.1.0"
+
+# ~7-year WORM retention for the audit log. Bucket lock is irreversible.
+retention_days = 2557
+
+# Org / Access Context Manager. access_policy_id is the numeric policy id.
+org_id           = "123456789012"
+access_policy_id = "987654321098"
+
+# Sovereignty perimeter on, but DRY-RUN first. Apply with vpc_sc_enforce = false, watch the
+# dry-run denial alert, add operators, then re-apply with vpc_sc_enforce = true.
+enable_vpc_sc  = true
+vpc_sc_enforce = false
+
+# Operator / CI identities allowed past the enforced perimeter (members:...).
+operator_members = [
+  "serviceAccount:terraform-ci@acme-mkt-intel-sg-prod.iam.gserviceaccount.com",
+]
+
+# Monitoring notification channels for the posture alerts (create channels separately).
+alert_notification_channels = []

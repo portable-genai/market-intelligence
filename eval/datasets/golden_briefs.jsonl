@@ -1,0 +1,10 @@
+# Golden brief set for the D1 offline eval gate. OBVIOUSLY-FICTIONAL synthetic cases.
+# Each line: a (topic, market, vertical) request plus the expected material-competitor-move
+# count (from the seeded snapshots in adapters/local/_seed.py). Covers BOTH verticals
+# (banking AND online retail) across ALL THREE markets (JP, AU, SG).
+{"id": "sg-banking", "topic": "savings and account fees", "market": "SG", "vertical": "banking", "expected_material_moves": 2, "expected_requires_human_review": true}
+{"id": "jp-banking", "topic": "multi-currency wallets", "market": "JP", "vertical": "banking", "expected_material_moves": 1, "expected_requires_human_review": true}
+{"id": "au-banking", "topic": "home loan rates", "market": "AU", "vertical": "banking", "expected_material_moves": 1, "expected_requires_human_review": true}
+{"id": "sg-retail", "topic": "delivery and fulfilment", "market": "SG", "vertical": "online_retail", "expected_material_moves": 1, "expected_requires_human_review": true}
+{"id": "jp-retail", "topic": "loyalty programmes", "market": "JP", "vertical": "online_retail", "expected_material_moves": 1, "expected_requires_human_review": true}
+{"id": "au-retail", "topic": "checkout payment options", "market": "AU", "vertical": "online_retail", "expected_material_moves": 1, "expected_requires_human_review": true}

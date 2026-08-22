@@ -1,0 +1,15 @@
+# Competitor-diff accuracy rubric for D1.
+#
+# The deterministic diff engine must detect the expected number of material competitor
+# moves for each golden case, and the where-to-play synthesis must always carry the
+# human-review flag (nothing consequential auto-executes).
+metric: diff_accuracy
+threshold: 0.80
+description: >-
+  Fraction of golden cases where the deterministic competitor-move diff produced the
+  expected count of material deltas for the (market, vertical).
+companion_metrics:
+  review_safety:
+    threshold: 0.99
+    description: >-
+      Fraction of briefs that correctly set requires_human_review=True (maker-checker).
