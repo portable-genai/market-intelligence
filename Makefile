@@ -23,7 +23,7 @@ export MKT_INTEL_PROFILE := $(PROFILE)
 # so they are gate-relevant code, not scratch scripts.
 DEMO_SCRIPTS := scripts/render_brief_ui.py scripts/demo_selftest.py
 
-.PHONY: venv install install-demo install-gcp lint format typecheck test eval gate \
+.PHONY: venv install install-demo install-gcp lock lint format typecheck test eval gate \
         ui-install ui-check portability \
         demo demo-server demo-selftest demo-browser smoke-local run-api run-ui \
         tf-validate tf-plan clean
@@ -41,6 +41,9 @@ install-demo: venv ## Install the pinned headless-browser extra, then fetch its 
 
 install-gcp: ## Install with the managed-stack extra (google-genai, discoveryengine, ...).
 	$(BIN)/python -m pip install -e ".[gcp,dev]"
+
+lock: ## Recompile every lockfile from pyproject.toml and restore the tag = commit headers.
+	$(BIN)/python scripts/lock.py
 
 lint:
 	$(BIN)/ruff check src tests $(DEMO_SCRIPTS)
