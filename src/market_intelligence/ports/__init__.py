@@ -13,7 +13,7 @@ imported rather than typed out. See :mod:`.observability`.
 
 from .generation import LlmPort
 from .governance import AgentRegistryPort, ToolCatalogPort
-from .identity import IdentityPort
+from .identity import EndUserAuthUnavailableError, IdentityPort
 from .knowledge_base import KnowledgeBasePort
 from .observability import (
     AuditSinkPort,
@@ -36,6 +36,7 @@ __all__ = [
     "AgentRegistryPort",
     "ToolCatalogPort",
     "IdentityPort",
+    "EndUserAuthUnavailableError",
     "ReviewRouterPort",
     "TokenUsage",
 ]
