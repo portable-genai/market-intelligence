@@ -1,4 +1,4 @@
-import { ConfiguredEmptyError, readEnvSetting } from "./env-setting.mjs";
+import { ConfiguredEmptyError, readEnvValue } from "./env-setting.mjs";
 /**
  * Typed fetch client for the D1 Market Intelligence FastAPI backend.
  *
@@ -25,7 +25,12 @@ import type { CompetitorAnalysis, Health, Market, MarketBrief, Persona, Vertical
 // Unset keeps the documented loopback default, which is what a laptop wants. Set-and-empty
 // refuses, because an emptied value names nothing and the default is the more permissive branch.
 const DEFAULT_API_BASE = "http://localhost:8100";
-const API_BASE_SETTING = readEnvSetting(process.env, "NEXT_PUBLIC_API_BASE");
+// The literal member expression is required: a bundler substitutes the public value only
+// where it sees exactly this, and handing it `process.env` leaves the browser reading {}.
+const API_BASE_SETTING = readEnvValue(
+  "NEXT_PUBLIC_API_BASE",
+  process.env.NEXT_PUBLIC_API_BASE,
+);
 if (API_BASE_SETTING.isConfiguredEmpty) {
   throw new ConfiguredEmptyError(
     "NEXT_PUBLIC_API_BASE is set to an empty value. An emptied variable names nothing, " +
