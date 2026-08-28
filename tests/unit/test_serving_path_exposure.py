@@ -28,6 +28,7 @@ from fastapi.testclient import TestClient
 from tests.conftest import LOOPBACK_PEER
 
 from market_intelligence.api import app as app_module
+from market_intelligence.api import deps
 
 _PROFILE_ENV = "MKT_INTEL_PROFILE"
 _INSECURE_DEMO_ENV = "MKT_INTEL_ALLOW_INSECURE_DEMO"
@@ -89,8 +90,10 @@ def test_a_loopback_peer_still_gets_the_offline_demo(path: str) -> None:
     assert TestClient(app_module.app, client=LOOPBACK_PEER).get(path).status_code == 200
 
 
-def test_the_loopback_peer_still_gets_the_whole_seeded_persona_list() -> None:
+def test_the_loopback_peer_still_gets_the_whole_seeded_persona_list(monkeypatch: pytest.MonkeyPatch) -> None:
     """The picker the local UI needs is intact; only the LAN is cut off from it."""
+    monkeypatch.setenv("MKT_INTEL_PROFILE", "local")
+    deps.get_container.cache_clear()
     personas = TestClient(app_module.app, client=LOOPBACK_PEER).get("/v1/personas").json()
     assert [p["id"] for p in personas] == ["analyst", "approver", "auditor", "other-tenant"]
 
