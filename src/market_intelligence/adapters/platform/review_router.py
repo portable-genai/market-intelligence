@@ -2,8 +2,8 @@
 
 Builds the review from the escalated brief and submits it to the Hrz7 service intake
 (``POST /v1/service/reviews``), S2S-authenticated. The Hrz7 base URL comes from
-``HRZ_HUMAN_REVIEW_URL`` and the S2S credentials from this repo's shared platform envs
-(``HRZ_S2S_TOKEN`` / ``HRZ_S2S_SIGNING_KEY``, reused from ``adapters/platform/_s2s.py`` so a fix
+``HUMAN_REVIEW_URL`` and the S2S credentials from this repo's shared platform envs
+(``S2S_TOKEN`` / ``S2S_SIGNING_KEY``, reused from ``adapters/platform/_s2s.py`` so a fix
 to the S2S transport rule stays a single edit). No cloud SDK is involved (the kit uses stdlib
 ``urllib`` + the wire-compatible S2S headers), so this module imports cleanly with no Google Cloud
 SDK; it binds under the ``gcp`` and ``platform`` profiles because it makes a real network call to
@@ -33,9 +33,9 @@ class PlatformReviewRouter:
         # Unset and set-but-empty collapse DELIBERATELY: both are closed in the same direction,
         # because there is no default Hrz7 to fall back to and the routing refuses below either
         # way. A localhost default here would be the dangerous shape; there isn't one.
-        base_url = read_env_setting("HRZ_HUMAN_REVIEW_URL").value
+        base_url = read_env_setting("HUMAN_REVIEW_URL").value
         if not base_url:
-            raise RuntimeError("HRZ_HUMAN_REVIEW_URL must be set to route reviews to Hrz7")
+            raise RuntimeError("HUMAN_REVIEW_URL must be set to route reviews to Hrz7")
         client = ReviewClient(
             base_url,
             token_env=TOKEN_ENV,

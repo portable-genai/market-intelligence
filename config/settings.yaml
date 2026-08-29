@@ -46,7 +46,7 @@ deep_research:
   grounding_tool: google_search
 
 knowledge_base:
-  base_url_env: HRZ_KB_URL              # A2 Enterprise KB (D1's internal-research store)
+  base_url_env: KNOWLEDGE_BASE_URL              # A2 Enterprise KB (D1's internal-research store)
   data_store_id: mkt-research-corpus    # only used by the standalone GCP File Search adapter
   # NOT the deploy region, and it cannot be. Agent Search serves exactly `global`, `us` and
   # `eu` and no Cloud region at all, so `asia-southeast1` -- pinned here until 2026-08-27 --
