@@ -87,10 +87,14 @@ curl -s localhost:8100/v1/brief \
   -H 'X-Dev-Persona: approver' \
   -d '{"topic": "savings and account fees", "market": "SG", "vertical": "banking"}'
 
-# in a second terminal, the thin Next.js console:
-cp ui/.env.local.example ui/.env.local   # NEXT_PUBLIC_API_BASE defaults to :8100
-make run-ui               # http://localhost:3000
+# in a second terminal, the thin Next.js console, on a PRODUCTION build:
+cd ui && npm install && npm run build && npm run start   # http://localhost:3000
 ```
+
+`NEXT_PUBLIC_API_BASE` needs no setting here: the console already defaults to `:8100`, the
+port `make run-api` binds. Demo the BUILT console, never `make run-ui`. That target is the
+developer loop and serves `next dev`, and the standing rule for every demo in the fleet is
+`org-metadata/docs/demos/demo-inventory.md`: production builds only.
 
 Identity is resolved server-side, never from the request body: there is no `actor` field.
 In the `local` profile the optional `X-Dev-Persona` header picks a seeded persona (default
