@@ -10,7 +10,7 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "D1 Market Intelligence",
+  title: "Market Intelligence",
   description:
     "Cited market briefs and competitor analysis from grounded deep research and an internal corpus, generic across banking and online retail and the JP/AU/SG markets.",
 };
