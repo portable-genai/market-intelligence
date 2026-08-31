@@ -27,6 +27,17 @@ from ..domain.models import BriefRequest, Market, RetrievalQuery, Vertical
 HANDLER_NAMES: tuple[str, ...] = ("deep_research", "search_internal_corpus", "competitor_analysis")
 
 
+def _optional_market(arguments: dict[str, Any]) -> Market | None:
+    """The requested market, or None when the caller named none. Never a guessed default."""
+    raw = str(arguments.get("market", "") or "")
+    return Market(raw) if raw else None
+
+
+def _optional_vertical(arguments: dict[str, Any]) -> Vertical | None:
+    raw = str(arguments.get("vertical", "") or "")
+    return Vertical(raw) if raw else None
+
+
 def _request(arguments: dict[str, Any]) -> BriefRequest:
     return BriefRequest(
         topic=str(arguments.get("topic", "") or ""),
@@ -47,10 +58,18 @@ def build_handlers(actor: str) -> dict[str, mcpserve.Handler]:
         return make_brief_service().competitor_analysis(_request(arguments), actor=actor)
 
     def search_internal_corpus(**arguments: Any) -> Any:
+        # The scope is PASSED, not merely declared. This tool advertised `market` and
+        # `vertical` in its schema and then built an unscoped RetrievalQuery, so a caller
+        # asking for one market's corpus was served every market's -- the declaration was the
+        # only thing that was ever scoped. `RetrievalQuery` has carried both fields all along.
+        # An absent value stays None, which is the port's own "no partition" and a different
+        # thing from a value the caller chose.
         return build_container().knowledge_base.search(
             RetrievalQuery(
                 text=str(arguments.get("query", "") or ""),
                 top_k=int(arguments.get("top_k") or 5),
+                market=_optional_market(arguments),
+                vertical=_optional_vertical(arguments),
             )
         )
 

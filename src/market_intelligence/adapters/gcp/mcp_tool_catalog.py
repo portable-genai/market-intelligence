@@ -84,6 +84,11 @@ def _build_catalog() -> dict[str, ToolSpec]:
                 "type": "object",
                 "properties": {
                     "topic": {"type": "string", "description": "Area to analyse."},
+                    # The handler builds the SAME BriefRequest `deep_research` does, through
+                    # one `_request`, so the source cap applies here identically. It was
+                    # undeclared with `additionalProperties: False`, which refused a caller who
+                    # wanted a wider or narrower read and silently used the default of 8.
+                    "max_sources": {"type": "integer", "minimum": 1, "maximum": 50, "default": 8},
                     **_SCOPE_SCHEMA,
                 },
                 "required": ["topic"],
