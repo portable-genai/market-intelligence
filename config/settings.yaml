@@ -41,7 +41,10 @@ models:
   use_hard_reasoning: false
 
 deep_research:
-  model: gemini-3.7-flash
+  # Bound by `models.location` above, which is in-region. This pinned `gemini-3.7-flash`
+  # directly beneath the comment explaining that 3.7 is us/eu-only and reachable only
+  # through the deviation process -- so deep research 404d rather than deviating.
+  model: gemini-3.5-flash
   max_sources: 12
   grounding_tool: google_search
 
