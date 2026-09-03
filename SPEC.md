@@ -37,7 +37,7 @@ never hard-codes them.
 | Port | Method(s) | GCP backing |
 |---|---|---|
 | `ResearchPort` | `research`, `competitor_snapshots` | Gemini Deep Research API + Grounding with Google Search |
-| `LlmPort` | `generate`, `classify` | Gemini (`gemini-3.5-flash`, `gemini-3.1-flash-lite`) |
+| `LlmPort` | `generate`, `classify` | Gemini (`gemini-3.5-flash`, `gemini-3.5-flash`) |
 | `KnowledgeBasePort` | `search` | File Search / Agent Search over the internal corpus |
 | `GuardrailPort` | `screen` | Model Armor |
 | `AuditSinkPort` | `record` | Cloud Logging locked WORM bucket |
