@@ -1,7 +1,7 @@
 """LlmPort — LLM text/reasoning for narrating and drafting the brief.
 
 Primary GCP adapter: Gemini models on the Gemini Enterprise Agent Platform
-(``gemini-3.5-flash`` for narration, ``gemini-3.1-flash-lite`` for triage). The LLM only
+(``gemini-3.5-flash`` for narration, ``gemini-3.5-flash`` for triage). The LLM only
 narrates and drafts over the already-computed deterministic result; it never decides the
 numbers, the diff, the scores or the ranking.
 """
