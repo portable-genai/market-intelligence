@@ -27,7 +27,8 @@ from market_intelligence.domain.services import MarketBriefService
 AS_OF = date(2026, 6, 24)
 ACTOR = "analyst@bank.example"
 
-#: The complete attribute key set an Mkt1 span may carry, per span name. Widening one of
+#: The complete attribute key set an market-intelligence span may carry, per span name. Widening one
+#: of
 #: these is a decision about what leaves the trust boundary, so it is made here rather
 #: than at a call site.
 _ALLOWED = {

@@ -1,4 +1,4 @@
-# providers.tf : Provider pinning for the Mkt1 Market Intelligence sovereign deploy.
+# providers.tf : Provider pinning for the market-intelligence Market Intelligence sovereign deploy.
 #
 # Control map (this repo has no numbered General Principles; controls cite SPEC sections):
 #   Residency (SPEC 2): every provider call is pinned to a single in-country region. The

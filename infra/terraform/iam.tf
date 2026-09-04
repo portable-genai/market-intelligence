@@ -1,4 +1,4 @@
-# iam.tf : Least-privilege runtime service account for the Mkt1 Cloud Run service.
+# iam.tf : Least-privilege runtime service account for the market-intelligence Cloud Run service.
 #
 # Control map:
 #   Least privilege (SPEC 3): a single dedicated runtime identity for the serving / API
@@ -12,7 +12,7 @@
 
 resource "google_service_account" "runtime" {
   account_id   = "mkt-market-intel-run"
-  display_name = "Mkt1 Market Intelligence : Cloud Run runtime (serving / API)"
+  display_name = "market-intelligence Market Intelligence : Cloud Run runtime (serving / API)"
   project      = var.project_id
 
   depends_on = [google_project_service.required]

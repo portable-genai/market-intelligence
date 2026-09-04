@@ -5,7 +5,7 @@ LLM, and, importantly, where its responsibilities **stop** and a sibling catalog
 over. Cross-references: [`README.md`](../../README.md), [`DEMO.md`](../../DEMO.md),
 [`SPEC.md`](../../SPEC.md).
 
-### What does Mkt1 actually produce?
+### What does `market-intelligence` actually produce?
 
 A cited **market brief** and a **competitor analysis**. From a market topic and a set of
 competitor names, it grounds deep research over public-web sources plus an internal brand
@@ -28,7 +28,7 @@ ungrounded brief.
 
 No. Every consequential output sets `requires_human_review=True` (maker-checker); the agent
 proposes and a qualified human disposes. When review is required the audit decision is
-`ESCALATED`, and the escalation is routed to the sibling **Hrz7** human-review console (rule
+`ESCALATED`, and the escalation is routed to the sibling `human-review-console` (rule
 R8) over S2S with a redact-before-wire payload.
 
 ### Which capabilities does this repo own vs integrate from the catalog?
@@ -38,18 +38,18 @@ market-intelligence and competitor-analysis domain logic and its outputs. It **i
 (via the `platform` profile's HTTP adapters) several cross-cutting concerns owned by sibling
 platform systems, do not rebuild these in a fork:
 
-| Concern | Owned by (catalog id / repo) | Mkt1's role |
+| Concern | Owned by (catalog id / repo) | `market-intelligence`'s role |
 |---|---|---|
-| Runtime guardrail: prompt-injection / jailbreak defense, output screening | **Hrz1** `agent-guardrail-gateway` | consumes it around the LLM (input + output screen in `brief_service._guard`) |
-| Governed RAG / knowledge base with citations | **Hrz2** `enterprise-knowledge-base` | ingests the brand corpus into it, retrieves grounded passages from it |
-| Agent registry, versioning, identity | **Hrz3** `agent-registry` | publishes its A2A AgentCard (`agent/agent_card.py`) for discovery |
-| AI-quality / eval / model-risk promotion gate | **Hrz4** `model-quality-gate` | its eval metrics gate promotion; the offline gate mirrors it (bundle `mkt1-market-intel`) |
-| Observability + immutable WORM prompt/response audit | **Hrz5** `agent-observability` | writes audit events to it; traces spans through it |
-| Human review / maker-checker console | **Hrz7** `human-review-console` | routes `requires_human_review` escalations to it (R8) |
-| Regulatory Q&A / control checklists | **Rsk1** `compliance-advisory` | consumes it for compliance checks |
+| Runtime guardrail: prompt-injection / jailbreak defense, output screening | `agent-guardrail-gateway` | consumes it around the LLM (input + output screen in `brief_service._guard`) |
+| Governed RAG / knowledge base with citations | `enterprise-knowledge-base` | ingests the brand corpus into it, retrieves grounded passages from it |
+| Agent registry, versioning, identity | `agent-registry` | publishes its A2A AgentCard (`agent/agent_card.py`) for discovery |
+| AI-quality / eval / model-risk promotion gate | `model-quality-gate` | its eval metrics gate promotion; the offline gate mirrors it (bundle `mkt1-market-intel`) |
+| Observability + immutable WORM prompt/response audit | `agent-observability` | writes audit events to it; traces spans through it |
+| Human review / maker-checker console | `human-review-console` | routes `requires_human_review` escalations to it (R8) |
+| Regulatory Q&A / control checklists | `compliance-advisory` | consumes it for compliance checks |
 
 So the guardrail, knowledge base, audit sink, eval platform and review console are
-*dependencies*, not features of this repo. Mkt1's dedup / diff / trend / SWOT engines are the
+*dependencies*, not features of this repo. `market-intelligence`'s dedup / diff / trend / SWOT engines are the
 research logic, distinct from the platform's runtime controls.
 
 ### Can I use this for a non-market-intelligence research product?

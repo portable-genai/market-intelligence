@@ -7,7 +7,7 @@ here. Read it first. This file carries only what is specific to this one.
 
 ## What this is
 
-Catalog id **Mkt1**. Cited market briefs and competitor analysis over grounded research and an
+Catalog id `market-intelligence`. Cited market briefs and competitor analysis over grounded research and an
 internal research corpus: source and claim dedup with provenance, competitor-move diff, trend
 scoring and the SWOT synthesis are deterministic, and the model narrates the computed result.
 
@@ -15,7 +15,7 @@ scoring and the SWOT synthesis are deterministic, and the model narrates the com
 
 | | |
 |---|---|
-| Catalog id | `Mkt1` |
+| Catalog id | `market-intelligence` |
 | Package | `src/market_intelligence/` |
 | Profile variable | `MKT_INTEL_PROFILE` |
 | Adapter families | `gcp`, `local`, `onprem`, `platform` |

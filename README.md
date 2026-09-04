@@ -1,4 +1,4 @@
-# Mkt1 Market Intelligence and Competitor Analysis (`market-intelligence`)
+# `market-intelligence` Market Intelligence and Competitor Analysis (`market-intelligence`)
 
 **Industries:** Retail & e-commerce, Banking, Telecom, Consumer goods, Travel & hospitality, Media
 
@@ -46,7 +46,7 @@ profile switch:
 |---|---|---|
 | `gcp` | primary | Gemini Deep Research API, Grounding with Google Search, File Search, Model Armor, Cloud Logging WORM, Cloud Trace, Gen AI eval (lazy SDK imports) |
 | `local` | dev / test / CI default | a WORKING offline stack: SQLite FTS5 corpus, a deterministic deep-research synthesizer, a deterministic LLM, all SDK-free and seedable |
-| `platform` | shared-platform reuse | thin HTTP clients to the shared Hrz1/Hrz2/Hrz3/Hrz4/Hrz5 services |
+| `platform` | shared-platform reuse | thin HTTP clients to the shared `agent-guardrail-gateway`, `enterprise-knowledge-base`, `agent-registry`, `model-quality-gate`, `agent-observability` services |
 | `onprem` | portability proof | fail-fast `NotImplementedError` stubs satisfying the same Protocols |
 
 Switching the whole backend is a one-line `profile` change, never a code edit.

@@ -1,11 +1,11 @@
-# infra/terraform : Mkt1 Market Intelligence sovereign deploy
+# infra/terraform : `market-intelligence` Market Intelligence sovereign deploy
 
-Terraform that makes the Mkt1 cloud posture enforceable at deploy time, not merely documented.
+Terraform that makes the `market-intelligence` cloud posture enforceable at deploy time, not merely documented.
 A control that lives only in a document is not a control: residency, encryption, perimeter and
 audit are pinned here so `terraform plan` fails when a deploy would violate them, and a
 reviewer can read each control next to the resource it governs.
 
-This stack defaults to the **asia-southeast1 (Singapore) resident** deployment of Mkt1. The
+This stack defaults to the **asia-southeast1 (Singapore) resident** deployment of `market-intelligence`. The
 application serves three APAC markets (JP, AU, SG), each with its own in-country residency
 region; apply a separate stack per market, setting that market's `region` and
 `allowed_regions`. The region is selected at deploy time and validated against
@@ -21,7 +21,7 @@ and at runtime if pointed off-allowlist.
 | `providers.tf` | google + google-beta providers, region wired from `var.region`, no global endpoint |
 | `variables.tf` | `region` validated against `allowed_regions` (both default to `asia-southeast1`); per-tenant knobs only |
 | `terraform.tfvars.example` | fictional in-country sample values |
-| `apis.tf` | enables only the managed services Mkt1's gcp adapters use, plus core infra |
+| `apis.tf` | enables only the managed services `market-intelligence`'s gcp adapters use, plus core infra |
 | `org_policy.tf` | `gcp.resourceLocations` allowlist, disable SA-key creation, no external IP, uniform bucket access |
 | `kms.tf` | one regional CMEK key + a per-service IAM binding (CMEK does not cascade) |
 | `vpc_sc.tf` | service perimeter, dry-run first (`vpc_sc_enforce = false`) |

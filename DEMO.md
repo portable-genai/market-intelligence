@@ -1,6 +1,6 @@
-# DEMO: Mkt1 Market Intelligence and Competitor Analysis
+# DEMO: `market-intelligence` Market Intelligence and Competitor Analysis
 
-Two ways to demo Mkt1: **Demo A**, a fully offline run on the `local` profile (no Google
+Two ways to demo `market-intelligence`: **Demo A**, a fully offline run on the `local` profile (no Google
 Cloud, no credentials), and **Demo B**, the managed run on the `gcp` profile with the
 residency region and the vertical selectable. Both use the same domain code and the same
 obviously-fictional synthetic data, so the offline demo is a faithful preview of the managed

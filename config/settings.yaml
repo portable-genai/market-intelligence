@@ -173,10 +173,10 @@ adapters:
     platform: market_intelligence.adapters.gcp.iap_identity:IapIdentityAdapter
     local: market_intelligence.adapters.local.identity:LocalPersonaIdentityAdapter
     onprem: market_intelligence.adapters.onprem.identity:OnPremIdentityAdapter
-  # Rule R8: an escalated brief (requires_human_review) is ROUTED to the Hrz7 Human-Review &
+  # Rule R8: an escalated brief (requires_human_review) is ROUTED to the human-review-console Human-Review &
   # Maker-Checker Console via the shared review-kit, never terminated in a local boolean.
   # local enqueues to a transactional outbox so the routing path runs offline; gcp / platform
-  # submit over S2S to Hrz7's service intake; onprem is the fail-fast sovereign placeholder.
+  # submit over S2S to human-review-console's service intake; onprem is the fail-fast sovereign placeholder.
   review_router:
     gcp: market_intelligence.adapters.platform.review_router:PlatformReviewRouter
     platform: market_intelligence.adapters.platform.review_router:PlatformReviewRouter

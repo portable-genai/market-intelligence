@@ -36,7 +36,7 @@ adapters are byte-for-byte deterministic while `onprem` and `platform` placehold
 
 It reinforces it. The kernel machinery in `domain/models.py` (citations, LLM envelope,
 guardrail verdict, audit, eval, AgentCard) is vertical-neutral and reusable across products;
-the `MarketBrief` / `CompetitorAnalysis` artifacts are the Mkt1 vertical. Neither imports a
+the `MarketBrief` / `CompetitorAnalysis` artifacts are the `market-intelligence` vertical. Neither imports a
 cloud SDK or a framework, so a fork for a different research vertical keeps the kernel and the
 port layer, and the portability guarantees transfer for free.
 
@@ -56,7 +56,7 @@ The `onprem` adapters are deliberate fail-fast placeholders (they raise
 `Settings` arg, so the *interface contract* for a sovereign migration is proven and enforced
 by CI today. The actual on-prem implementations are the migration work, scoped in
 [`docs/onprem-migration.md`](../onprem-migration.md). This repo is not the sovereign-exit
-*planner* (that is the sibling **Rgc9** `operational-resilience-mapping`, module
+*planner* (that is the sibling `operational-resilience-mapping`, module
 `domain/concentration_exit/`); this repo is one of the systems whose exit that planner
 reasons about.
 
@@ -66,8 +66,7 @@ No: residency is a deploy-time pin (a single in-country region, default `asia-so
 Singapore, with an Org Policy resource-location allowlist, CMEK, and a VPC-SC perimeter), and
 portability is the ability to change *where* the stack runs by configuration. They are
 orthogonal. The region is validated to fail fast, and a second region is a tfvars change, not
-a fork. Residency-violation CI gating overlaps with the sibling **Rsk3**
-`architecture-validator` (`domain/residency/`), which a fork should run rather than
+a fork. Residency-violation CI gating overlaps with the sibling `architecture-validator` (`domain/residency/`), which a fork should run rather than
 re-implement.
 
 ### What is a single script I can run to prove it?

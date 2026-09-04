@@ -1,4 +1,4 @@
-# cloud_run.tf : Cloud Run v2 service running the Mkt1 FastAPI image in Singapore.
+# cloud_run.tf : Cloud Run v2 service running the market-intelligence FastAPI image in Singapore.
 #
 # Control map:
 #   Residency (SPEC 2): location is var.region (selected at deploy, allowlist-validated). The

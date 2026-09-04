@@ -2,13 +2,14 @@
 
 Lives in the adapter layer (not the pure domain) because it depends on the kit. D1 is generic
 marketing intelligence over public + aggregate market data and carries no customer PII by design
-(C2/C3/C4 are ``n/a`` in the practices audit, and the repo ships no PII-redaction adapter). Even
-so, the subject descriptor, summary and citation snippets are scrubbed defensively before they
-leave the process (R1 / P-04 boundary): the review console is a shared sink, so should a stray
-identifier ever appear in a fictional source snippet it must never reach Hrz7 over the wire; Hrz7
-redacts again before its own audit write (defense in depth). The maker (the agent that originated
-the brief) and the tenant are asserted here and trusted by Hrz7 because this is an authenticated
-S2S caller (per-hop OBO is the deferred next layer).
+(C2/C3/C4 are ``n/a`` in the practices audit, and the repo ships no PII-redaction adapter). Even so,
+the subject descriptor, summary and citation snippets are scrubbed defensively before they leave the
+process (R1 / P-04 boundary): the review console is a shared sink, so should a stray identifier ever
+appear in a fictional source snippet it must never reach human-review-console over the wire;
+human-review-console redacts again before its own audit write (defense in depth). The maker (the
+agent that originated the brief) and the tenant are asserted here and trusted by
+human-review-console because this is an authenticated S2S caller (per-hop OBO is the deferred next
+layer).
 """
 
 from __future__ import annotations
@@ -95,7 +96,7 @@ def _brief_citations(brief: MarketBrief) -> list[Citation]:
 
 
 def brief_to_review(brief: MarketBrief, *, maker: str, tenant: str = "") -> Review:
-    """Build the review a producer submits to Hrz7 when a market brief escalates."""
+    """Build the review a producer submits to human-review-console when a market brief escalates."""
     analysis = brief.competitor_analysis
     material_moves = len(analysis.diff.material_deltas) if analysis is not None else 0
     descriptor = f"Market brief for {brief.topic} ({brief.market.value}/{brief.vertical.value})"

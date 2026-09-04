@@ -1,6 +1,6 @@
-"""Wire-contract tests for the platform eval adapter (Hrz4 AI Quality / Model-Risk).
+"""Wire-contract tests for the platform eval adapter (model-quality-gate AI Quality / Model-Risk).
 
-These pin the hardened Hrz4 contract the ``RemoteEvaluationAdapter`` must speak:
+These pin the hardened model-quality-gate contract the ``RemoteEvaluationAdapter`` must speak:
 
 * ``evaluate`` POSTs a **structured** ``target`` plus a top-level ``dataset_id`` and a
   ``bundle`` to ``/v1/evaluations``; the top-level ``dataset_id`` equals ``target.dataset_id``;
@@ -22,7 +22,7 @@ The refusal tests are the point of the upgrade, not an inconvenience: a promotio
 by a naked ``{"passed": true}`` is a promotion certified by nothing.
 
 Every value is obviously fictional. HTTP is mocked with ``respx`` (a dev dependency); no
-live Hrz4 is contacted.
+live model-quality-gate is contacted.
 """
 
 from __future__ import annotations

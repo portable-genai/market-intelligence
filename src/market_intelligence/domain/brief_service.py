@@ -92,7 +92,8 @@ class MarketBriefService:
         self._diff = diff or CompetitorDiffService()
         self._trend = trend or TrendScoringService()
         self._swot = swot or SwotSynthesisService()
-        # Rule R8: when the brief requires human review it is routed to Hrz7 (the maker-checker
+        # Rule R8: when the brief requires human review it is routed to human-review-console (the
+        # maker-checker
         # console) via this port instead of terminating in a boolean. Optional: a container that
         # leaves the router unset still audits ESCALATED, it just is not forwarded to a console.
         self._review_router = review_router
@@ -157,7 +158,8 @@ class MarketBriefService:
             self._guard(summary, Direction.OUTPUT, actor)
             self._record(brief, actor)
             # Rule R8: the escalation is not left as a boolean — the already-assembled, already-
-            # audited brief is handed to the Hrz7 maker-checker console (the audit ESCALATED
+            # audited brief is handed to the human-review-console maker-checker console (the audit
+            # ESCALATED
             # record is the durable trail). Routing is a hand-off, never fatal to a brief that
             # is already built and audited.
             if self._review_router is not None and brief.requires_human_review:

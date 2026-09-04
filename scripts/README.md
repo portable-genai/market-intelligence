@@ -1,4 +1,4 @@
-# Demo scripts - Mkt1 Market Intelligence & Competitor Analysis
+# Demo scripts - `market-intelligence` Market Intelligence & Competitor Analysis
 
 All scripts are SDK-free and run against the in-process `local` stack (no Google Cloud, no
 API key, no live web grounding). They drive the real `MarketBriefService` over four
