@@ -2,7 +2,7 @@
 #
 # Control map:
 #   CMEK does NOT cascade: a CMEK on one resource does not automatically protect data that
-#         resource hands to another service. Each managed service that touches Mkt1 data
+#         resource hands to another service. Each managed service that touches market-intelligence data
 #         (the Cloud Run revision, the GenAI File Search store via Discovery Engine, Vertex /
 #         Agent Platform runtime state, and the WORM log bucket) is granted use of THIS key
 #         explicitly below. One regional key ring + crypto key; no project-wide grant.

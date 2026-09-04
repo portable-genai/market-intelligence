@@ -58,7 +58,8 @@ _ROOT_INSTRUCTION = (
     "citation; those are computed deterministically by the tools and you only narrate them.\n"
     "- A market brief and a competitor analysis are consequential strategy inputs: always "
     "state that they require human review (maker-checker) before anyone acts on them.\n"
-    "- Marketing outputs are governed by Mkt6 and screened by the Hrz1 guardrail (rule R7); "
+    "- Marketing outputs are governed by marketing-compliance-gate and screened by the "
+    "agent-guardrail-gateway (rule R7); "
     "do not draft customer-facing advertising copy here."
 )
 

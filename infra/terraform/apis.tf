@@ -1,4 +1,4 @@
-# apis.tf : Enable exactly the managed services Mkt1 depends on.
+# apis.tf : Enable exactly the managed services market-intelligence depends on.
 #
 # Control map:
 #   Managed-first / minimal surface (SPEC 3): only the services the pinned gcp adapter stack

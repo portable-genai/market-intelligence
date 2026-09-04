@@ -2,11 +2,11 @@
 #
 # Control map:
 #   Residency + exfiltration control (SPEC 2): a service perimeter draws a logical boundary
-#         around the sovereignty-critical APIs Mkt1 uses (Vertex / Agent Platform, Discovery
+#         around the sovereignty-critical APIs market-intelligence uses (Vertex / Agent Platform, Discovery
 #         Engine File Search, Model Armor, Logging, Cloud Trace, KMS). Research output and
 #         the audit log cannot be read across the boundary to a non-Singapore project, which
 #         is what keeps the corpus and decision record in-country.
-#   Least surface (SPEC 3): only the services Mkt1 actually calls are inside the perimeter.
+#   Least surface (SPEC 3): only the services market-intelligence actually calls are inside the perimeter.
 #
 # Two toggles:
 #   var.enable_vpc_sc  : create the perimeter at all (count).

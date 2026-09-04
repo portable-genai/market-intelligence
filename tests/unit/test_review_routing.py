@@ -1,9 +1,11 @@
-"""R8 routing: an escalated market brief is routed to Hrz7 via the shared review-kit.
+"""R8 routing: an escalated market brief is routed to human-review-console via the shared
+review-kit.
 
-Every market brief requires human review (P-06), so rule R8 says it MUST be handed to the Hrz7
-maker-checker console rather than left as a boolean. These tests prove the producer half of that
-loop end-to-end against the offline local router (an in-memory outbox), and prove the redact-
-before-wire boundary so no stray identifier reaches the console. All data is fictional.
+Every market brief requires human review (P-06), so rule R8 says it MUST be handed to the
+human-review-console maker-checker console rather than left as a boolean. These tests prove the
+producer half of that loop end-to-end against the offline local router (an in-memory outbox), and
+prove the redact- before-wire boundary so no stray identifier reaches the console. All data is
+fictional.
 """
 
 from __future__ import annotations
@@ -61,7 +63,9 @@ def test_build_routes_escalated_brief_to_outbox(local_container: Container):
     assert brief.requires_human_review
 
     pending = router.outbox.pending()
-    assert len(pending) == 1, "the escalated brief must be routed to Hrz7 exactly once"
+    assert len(pending) == 1, (
+        "the escalated brief must be routed to human-review-console exactly once"
+    )
     review = pending[0].review
     assert review.action == "market_brief:build"
     assert review.case_ref == brief.id

@@ -32,7 +32,7 @@ output "audit_sink_writer_identity" {
 
 # ------------------------------- Cloud Run ---------------------------------- #
 output "service_url" {
-  description = "Base URL of the Mkt1 Cloud Run API service."
+  description = "Base URL of the market-intelligence Cloud Run API service."
   value       = google_cloud_run_v2_service.api.uri
 }
 
@@ -42,7 +42,7 @@ output "service_name" {
 }
 
 output "agent_card_url" {
-  description = "A2A AgentCard discovery URL for the Mkt1 service."
+  description = "A2A AgentCard discovery URL for the market-intelligence service."
   value       = "${google_cloud_run_v2_service.api.uri}/.well-known/agent-card.json"
 }
 

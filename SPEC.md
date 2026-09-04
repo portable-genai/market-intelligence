@@ -1,8 +1,8 @@
-# SPEC: Mkt1 Market Intelligence and Competitor Analysis
+# SPEC: `market-intelligence` Market Intelligence and Competitor Analysis
 
 ## 1. Purpose and scope
 
-Mkt1 turns external deep research and an internal research corpus into a cited **MarketBrief**
+`market-intelligence` turns external deep research and an internal research corpus into a cited **MarketBrief**
 and **CompetitorAnalysis** for a `(topic, market, vertical)`. It is generic marketing
 intelligence: banking and online retail are configurable verticals, and Japan, Australia and
 Singapore are first-class markets. The Insights / Strategy function is the owner; the output
@@ -29,7 +29,7 @@ Per-market residency regions and locales come from `MARKET_PROFILES` (overridabl
 Per-market and per-vertical advertising / consumer-protection rule sets (JP Act on
 Specified Commercial Transactions and Premiums & Representations Act; AU Australian Consumer
 Law / ASIC; SG PDPA and advertising standards; banking financial-promotion rules as one set
-among others) are config + seed, surfaced by Mkt6 and consumed here as rule references; Mkt1
+among others) are config + seed, surfaced by `marketing-compliance-gate` and consumed here as rule references; `market-intelligence`
 never hard-codes them.
 
 ## 3. Ports (the hexagon boundary)
@@ -42,8 +42,8 @@ never hard-codes them.
 | `GuardrailPort` | `screen` | Model Armor |
 | `AuditSinkPort` | `record` | Cloud Logging locked WORM bucket |
 | `ObservabilityTracerPort` | `span`, `record_token_usage` | Cloud Trace via OpenTelemetry |
-| `EvaluationGatePort` | `evaluate`, `gate` | Gen AI evaluation service (Hrz4) |
-| `AgentRegistryPort` | `register`, `get`, `list` | A2A AgentCard registry (Hrz3) |
+| `EvaluationGatePort` | `evaluate`, `gate` | Gen AI evaluation service (`model-quality-gate`) |
+| `AgentRegistryPort` | `register`, `get`, `list` | A2A AgentCard registry (`agent-registry`) |
 | `ToolCatalogPort` | `list_tools`, `get_tool` | governed MCP tool catalog |
 
 Every port is a `@runtime_checkable` `Protocol`; adapters need only structural conformance.
@@ -93,16 +93,16 @@ audit.record                     -> Decision.ESCALATED (maker-checker)
 All artifacts serialise to plain JSON via `domain.serialization.to_jsonable` (enums to
 values, datetimes to ISO, dataclasses to dicts).
 
-## 7. Quality gate (Hrz4)
+## 7. Quality gate (`model-quality-gate`)
 
 `eval/run_eval.py` runs the real `MarketBriefService` over a synthetic golden set on the
 local profile and enforces: `brief_groundedness >= 0.80`, `citation_accuracy >= 0.90`,
 `diff_accuracy >= 0.80`, `review_safety >= 0.99`. Exit non-zero on failure.
 
 On the `platform` profile the same `EvaluationGatePort` is a real HTTP client
-(`adapters/platform/remote_evaluation.py`) to Hrz4's hardened contract: `evaluate` posts to
+(`adapters/platform/remote_evaluation.py`) to `model-quality-gate`'s hardened contract: `evaluate` posts to
 `POST /v1/evaluations`, `gate` to `POST /v1/gate`, each with a structured `target` (`model`,
 `prompt_version`, `dataset_id`, `system`) plus a top-level `dataset_id` and
 `bundle: mkt1-market-intel`. Metrics are selected server-side by that registered bundle name
-(never a bare metric list, which Hrz4 422s on), and the top-level `dataset_id` must equal
+(never a bare metric list, which `model-quality-gate` 422s on), and the top-level `dataset_id` must equal
 `target.dataset_id`.

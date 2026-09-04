@@ -29,12 +29,12 @@ No. Inputs are market topics and competitor names; outputs are briefs synthesise
 public-web and aggregate research plus the internal brand corpus. No customer PII enters the
 pipeline, so there is no PII de-identification boundary (checks C3/C4 are N-A). The runtime
 guardrail (input and output screening around the LLM, `brief_service._guard`) is the sibling
-**Hrz1** gateway, which this repo consumes rather than re-implements.
+`agent-guardrail-gateway`, which this repo consumes rather than re-implements.
 
 ### What about the service-to-service calls in the `platform` profile?
 
 Most `platform` adapters are unbuilt `NotImplementedError` phase stubs today (tracked by the
-catalog S2S-auth plan). The one real outbound call, the Hrz4 eval client
+catalog S2S-auth plan). The one real outbound call, the `model-quality-gate` eval client
 (`remote_evaluation.py`), is re-based on the shared `agent-eval-kit` / `hex-service-kit`
 clients: it attaches the shared S2S bearer credential and enforces an https-only base-URL
 guard (the client refuses plaintext non-loopback), and gate mode refuses to run outside
@@ -75,7 +75,7 @@ The `local` audit store wraps the shared `hex_service_kit.audit.HashChainedAudit
 SHA-256 chain over canonical JSON with SQLite `UPDATE`/`DELETE` triggers enforcing
 append-only, `verify_chain()` exposed, JSONL export/restore, and an honest-limits docstring.
 Proven by `tests/unit/test_audit_chain.py`. In production the `gcp` profile uses a locked WORM
-bucket. This repo does not *replace* the platform audit system (Hrz5); see
+bucket. This repo does not *replace* the platform audit system (`agent-observability`); see
 [features-faq.md](features-faq.md).
 
 ### Supply chain: are dependencies pinned and scanned?
@@ -95,7 +95,7 @@ seed brand corpus and every fixture are obviously-fictional (names suffixed FICT
 
 ### What is explicitly out of scope / a residual risk?
 
-- Most `platform` S2S delegates are unbuilt placeholders; only the Hrz4 eval client is real.
+- Most `platform` S2S delegates are unbuilt placeholders; only the `model-quality-gate` eval client is real.
 - The security-header baseline is being extended (C6). The demo anti-rot self-test (F2) and the
   one-command portability script (F3) are no longer gaps: both are PASS and both run inside
   `make gate`.

@@ -100,9 +100,9 @@ the human decisions below.
 This repo is one system in a catalog of composable GRC systems. Several concerns it
 *touches* are owned by sibling platform services, and you should integrate rather than
 rebuild them (see [`docs/faq/features-faq.md`](faq/features-faq.md) for the full map): the
-guardrail gateway (Hrz1), the governed knowledge base (Hrz2), the agent registry (Hrz3), the
-AI-quality / eval gate (Hrz4), observability plus WORM audit (Hrz5), the compliance
-assistant (Rsk1), and the Hrz7 human-review console (R8 routing). The `platform` profile's
+guardrail gateway (`agent-guardrail-gateway`), the governed knowledge base (`enterprise-knowledge-base`), the agent registry (`agent-registry`), the
+AI-quality / eval gate (`model-quality-gate`), observability plus WORM audit (`agent-observability`), the compliance
+assistant (`compliance-advisory`), and the `human-review-console` (R8 routing). The `platform` profile's
 adapters are thin HTTP clients to those services.
 
 ## 6. Adoption checklist

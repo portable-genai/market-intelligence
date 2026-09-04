@@ -1,8 +1,8 @@
-# ARCHITECTURE: Mkt1 Market Intelligence and Competitor Analysis
+# ARCHITECTURE: `market-intelligence` Market Intelligence and Competitor Analysis
 
 ## Hexagonal ports and adapters
 
-Mkt1 is built as a hexagon: a pure-stdlib **domain core** surrounded by typed **ports**, with
+`market-intelligence` is built as a hexagon: a pure-stdlib **domain core** surrounded by typed **ports**, with
 interchangeable **adapter families** selected by a single profile switch. The domain has
 zero dependency on any framework, SDK or cloud. That is what makes it testable offline,
 portable across vendors, and honest about its boundaries.
@@ -26,7 +26,7 @@ portable across vendors, and honest about its boundaries.
                                              v
        +---------------+----------------+----------------+--------------------+
        | adapters/gcp  | adapters/local | adapters/platform | adapters/onprem |
-       | (lazy SDK)    | (offline)      | (HTTP to Hrz1..Hrz5)  | (fail-fast stub) |
+       | (lazy SDK)    | (offline)      | (HTTP to `agent-guardrail-gateway`..`agent-observability`)  | (fail-fast stub) |
        +---------------+----------------+----------------+--------------------+
 ```
 
@@ -36,7 +36,7 @@ portable across vendors, and honest about its boundaries.
 |---|---|---|
 | `gcp` | primary, managed | Gemini Deep Research API, Grounding with Google Search, File Search, Model Armor, Cloud Logging WORM, Cloud Trace, Gen AI eval. SDK imports are lazy. |
 | `local` | dev / test / CI default | a WORKING offline stack: a deterministic deep-research synthesizer over a seeded SQLite FTS5 corpus, a deterministic schema-driven LLM, a heuristic guardrail, append-only audit, no-op tracer, in-process registry / tool-catalog, the offline eval gate. SDK-free and seedable. |
-| `platform` | shared-platform reuse | thin HTTP clients to the shared Hrz1 guardrail, Hrz2 KB, Hrz3 registry, Hrz4 eval, Hrz5 audit. |
+| `platform` | shared-platform reuse | thin HTTP clients to the shared `agent-guardrail-gateway`, `enterprise-knowledge-base`, `agent-registry`, `model-quality-gate` eval, `agent-observability`. |
 | `onprem` | portability proof | fail-fast `NotImplementedError` stubs satisfying the same Protocols. |
 
 Switching the whole backend is a one-line `profile` change in `config/settings.yaml` (or

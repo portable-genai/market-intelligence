@@ -4,7 +4,7 @@ This builds the agent's discovery card (the same minimal A2A shape the
 ``agent-registry`` service stores and serves, SPEC §6). It is published at
 ``/.well-known/agent-card.json``; :func:`agent_card_document` returns the JSON-safe body
 the API layer serves there, and the ``platform`` registry adapter registers the same card
-in Hrz3 (rule R4).
+in agent-registry (rule R4).
 
 The card advertises the two consequential skills D1 produces (build_market_brief,
 competitor_analysis), mirroring the ADK FunctionTools so a peer agent or the registry sees
@@ -49,7 +49,7 @@ _DESCRIPTION = (
     "scores, SWOT / where-to-play) from grounded deep research plus an internal research "
     "corpus, with a full audit trail. Generic across banking and online retail and the "
     "JP / AU / SG markets. Built ports-and-adapters on the Gemini Enterprise Agent Platform; "
-    "the governed RAG store is the Hrz2 Enterprise KB. The model only narrates the "
+    "the governed RAG store is the enterprise-knowledge-base. The model only narrates the "
     "deterministically-computed result; every claim carries a citation."
 )
 

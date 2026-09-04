@@ -1,6 +1,6 @@
-# Runbook: Mkt1 Market Intelligence and Competitor Analysis
+# Runbook: `market-intelligence` Market Intelligence and Competitor Analysis
 
-Operational notes for deploying and running Mkt1 on the Gemini Enterprise Agent Platform in a
+Operational notes for deploying and running `market-intelligence` on the Gemini Enterprise Agent Platform in a
 residency region (defaults `asia-southeast1`; JP and AU are per-market overrides). This is a
 reference build; adapt it to your own change-management and model-risk sign-off before any
 live use.

@@ -1,6 +1,6 @@
-# Embedding and identity: client integration guide (Mkt1 market-intelligence)
+# Embedding and identity: client integration guide (`market-intelligence` market-intelligence)
 
-How to run the Mkt1 Market Intelligence and Competitor Analysis agent standalone or
+How to run the `market-intelligence` Market Intelligence and Competitor Analysis agent standalone or
 embedded inside an existing client web application, and how its server-verified identity
 works. Everything described here is implemented in this repository; the "Further layers"
 section at the end points at the reference repo for the designed extensions that are
@@ -207,7 +207,7 @@ When the UI is served cross-origin from the API during development, the CORS all
   verified `Principal.actor` resolved by the active profile's `IdentityPort`
   (`api/security.py` builds a `RequestContext` from the request headers and maps
   `IdentityError` to HTTP 401).
-- **The Principal carries entitlement principals and a tenant.** Mkt1's brief and
+- **The Principal carries entitlement principals and a tenant.** `market-intelligence`'s brief and
   competitor-analysis queries are market/vertical scoped and have no per-user ACL seam
   today, so `principals` is recorded for audit and reserved for future entitlement checks
   (the reference repo shows the pattern of merging them into governed-retrieval ACLs as

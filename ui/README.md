@@ -1,7 +1,7 @@
-# Mkt1 Market Intelligence: Demo UI
+# `market-intelligence` Market Intelligence: Demo UI
 
-A thin demo console for **Mkt1**, the Market Intelligence and Competitor Analysis system. It
-is a thin presentation layer over the Mkt1 FastAPI backend: it builds a cited market brief for
+A thin demo console for `market-intelligence`, the Market Intelligence and Competitor Analysis system. It
+is a thin presentation layer over the `market-intelligence` FastAPI backend: it builds a cited market brief for
 a topic in a chosen market and vertical, and renders the audit-first result (summary, key
 claims with provenance, trend scores, the deterministic competitor-move diff, the ranked
 where-to-play options, and the source list) with the maker-checker "human review required"
@@ -22,7 +22,7 @@ market and vertical.
 ## Configure the backend
 
 Nothing to configure to run against `make run-api`: `NEXT_PUBLIC_API_BASE` already
-defaults to the Mkt1 API port 8100. Write the override yourself only when the API is
+defaults to the `market-intelligence` API port 8100. Write the override yourself only when the API is
 somewhere else, and write it before `npm run build`, because Next inlines every
 `NEXT_PUBLIC_*` value at build time:
 
@@ -33,7 +33,7 @@ echo 'NEXT_PUBLIC_API_BASE=https://api.elsewhere.example' > .env.local
 ## Run
 
 ```bash
-# 1. start the Mkt1 API (from the repo root)
+# 1. start the `market-intelligence` API (from the repo root)
 make run-api            # uvicorn on :8100, PROFILE=local by default
 
 # 2. start the console
