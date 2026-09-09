@@ -14,3 +14,18 @@ companion_metrics:
     description: >-
       Fraction of cited source ids that appear in the retrieved / derived evidence set (no
       fabricated citations).
+
+# CLAIM LEVEL, not brief level, and the change is the point. This metric used to score 1.0 as
+# soon as a brief carried any citation at all, which is a boolean wearing a percentage: a brief
+# making twelve claims and citing one of them read a perfect 1.000. COMPLIANCE.md P-10 promises
+# something quite different, that "every brief statement and competitor delta carries a
+# source-and-page Citation", and nothing measured that promise.
+#
+# The unit is now the Claim and the material Delta, each of which carries its own citations, so
+# the count is structural rather than a guess at which sentence a citation belongs to. The
+# metric moves when a claim loses its provenance, instead of only when the last one does.
+denominator:
+  # A rate over claims and material deltas, not over briefs. Six golden briefs carry many more
+  # than six claims, which is what makes an 0.80 bar expressible at all.
+  kind: rate
+  over: claims and material competitor deltas across the briefs

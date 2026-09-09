@@ -45,7 +45,14 @@ from pathlib import Path
 # The --mode smoke|gate scaffold + aligned report rendering come from the shared
 # agent-eval-kit commons; this script keeps only its own offline
 # evaluator and gate runner.
-from agent_eval_kit import assert_each_can_go_red, eval_main
+from agent_eval_kit import (
+    assert_denominator_supports,
+    assert_each_can_go_red,
+    dataset_digest,
+    eval_main,
+    load_rubrics,
+    prove_before_scoring,
+)
 
 from market_intelligence.domain.models import (
     BriefRequest,
@@ -56,14 +63,15 @@ from market_intelligence.domain.models import (
     Vertical,
 )
 
-THRESHOLDS: dict[str, float] = {
-    "brief_groundedness": 0.80,
-    "citation_accuracy": 0.90,
-    "diff_accuracy": 0.80,
-    "review_safety": 0.99,
-}
+#: Where every bar lives. Not a dict here: a threshold written as a Python literal carries no
+#: argument, so a reviewer can read that grounding must clear 0.80 and cannot read why, who
+#: agreed it, or what moving it would mean. The rubric files carry the reasoning beside the
+#: number, and `agent_eval_kit.load_rubrics` reads them. What was here before was BOTH: a dict
+#: and a loader that overlaid two rubric files on top of it, falling back to the dict when
+#: PyYAML was missing, which is a silent path that uses the number nobody reviews.
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
+RUBRICS = _REPO_ROOT / "eval" / "rubrics"
 DEFAULT_DATASET = _REPO_ROOT / "eval" / "datasets" / "golden_briefs.jsonl"
 _AS_OF = date(2026, 6, 24)  # fixed clock so the eval is reproducible
 _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
@@ -108,25 +116,18 @@ def load_golden(path: Path) -> list[GoldenExample]:
 
 
 def load_thresholds_from_rubrics() -> dict[str, float]:
-    """Read thresholds from ``eval/rubrics/*.yaml`` when PyYAML is available."""
-    thresholds = dict(THRESHOLDS)
-    try:
-        import yaml  # type: ignore[import-untyped]
-    except ImportError:
-        return thresholds
-    rubric_dir = _REPO_ROOT / "eval" / "rubrics"
-    for name in ("groundedness.yaml", "diff_accuracy.yaml"):
-        rubric_path = rubric_dir / name
-        if not rubric_path.exists():
-            continue
-        doc = yaml.safe_load(rubric_path.read_text(encoding="utf-8")) or {}
-        metric = doc.get("metric")
-        if isinstance(metric, str) and "threshold" in doc:
-            thresholds[metric] = float(doc["threshold"])
-        for companion, spec in (doc.get("companion_metrics") or {}).items():
-            if isinstance(spec, dict) and "threshold" in spec:
-                thresholds[str(companion)] = float(spec["threshold"])
-    return thresholds
+    """Read every metric's reviewed bar out of ``eval/rubrics/*.yaml``. No fallback, by design."""
+    return load_rubrics(RUBRICS).thresholds()
+
+
+#: The metrics this runner scores, in report order. Named so `assert_covers` can compare them
+#: with the rubric set in BOTH directions.
+SCORED: tuple[str, ...] = (
+    "brief_groundedness",
+    "citation_accuracy",
+    "diff_accuracy",
+    "review_safety",
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -170,10 +171,35 @@ def _claim_sentences(text: str) -> list[str]:
 
 
 def score_groundedness(brief: MarketBrief) -> float:
-    """Every brief with narrative claims must carry at least one citation."""
-    if not _claim_sentences(brief.summary):
-        return 1.0
-    return 1.0 if brief.citations else 0.0
+    """Every CLAIM and every material competitor delta carries a citation. Claim level, not brief.
+
+    This used to be "the brief has at least one citation", which is a boolean wearing a
+    percentage: a brief making twelve claims and citing one of them scored a perfect 1.000.
+    `COMPLIANCE.md` P-10 promises something quite different, that "every brief statement and
+    competitor delta carries a source-and-page Citation", and nothing measured that promise.
+
+    The unit is therefore the claim, not the brief. `Claim` and `Delta` each carry their own
+    citations, so the count is structural rather than a guess at which sentence a citation
+    belongs to: a brief with no cited claims scores 0.0, one with half of them cited scores 0.5,
+    and the metric moves when a claim loses its provenance instead of only when the last one
+    does.
+
+    A brief whose summary makes no claim and which carries no deltas has nothing to ground and
+    scores 1.0, which is correct and is not the same as scoring a brief that made claims and
+    cited nothing.
+    """
+    grounded: list[bool] = [bool(claim.citations) for claim in brief.key_claims]
+    if brief.competitor_analysis is not None:
+        grounded += [
+            bool(delta.citations) for delta in brief.competitor_analysis.diff.material_deltas
+        ]
+    if not grounded:
+        # No structured claim to ground. A narrative summary with no claims behind it is still
+        # scored: an uncited summary that asserts something is the original defect.
+        if not _claim_sentences(brief.summary):
+            return 1.0
+        return 1.0 if brief.citations else 0.0
+    return round(sum(grounded) / len(grounded), 4)
 
 
 def score_citation_accuracy(brief: MarketBrief) -> float:
@@ -234,10 +260,13 @@ class _PerMetric:
 
 
 def run_offline(dataset: Path, thresholds: dict[str, float]) -> EvalReport:
-    assert_review_safety_can_go_red(thresholds["review_safety"])
+    # The rubrics and the scored set must agree in BOTH directions before anything is scored.
+    load_rubrics(RUBRICS).assert_covers(SCORED)
+    prove_before_scoring(lambda: assert_review_safety_can_go_red(thresholds["review_safety"]))
     examples = load_golden(dataset)
     service = _make_service()
-    agg: dict[str, _PerMetric] = {m: _PerMetric() for m in THRESHOLDS}
+    agg: dict[str, _PerMetric] = {metric: _PerMetric() for metric in SCORED}
+    produced: dict[str, int] = {"grounded_units": 0, "citations": 0}
     print(f"Running offline eval gate over {len(examples)} golden briefs (MarketBriefService).\n")
     for ex in examples:
         request = BriefRequest(
@@ -245,23 +274,48 @@ def run_offline(dataset: Path, thresholds: dict[str, float]) -> EvalReport:
         )
         brief = service.build_brief(request, actor="eval-bot", as_of=_AS_OF)
         agg["brief_groundedness"].scores.append(score_groundedness(brief))
+        # The denominators these two rates are actually measured over: the claims and
+        # material deltas a brief carries, and the citations it emits. The brief count is
+        # the wrong number for both, and it is the number a case-count check would use.
+        produced["grounded_units"] += len(brief.key_claims) + (
+            len(brief.competitor_analysis.diff.material_deltas)
+            if brief.competitor_analysis is not None
+            else 0
+        )
+        produced["citations"] += len(brief.citations)
         agg["citation_accuracy"].scores.append(score_citation_accuracy(brief))
         agg["diff_accuracy"].scores.append(score_diff_accuracy(brief, ex.expected_material_moves))
         agg["review_safety"].scores.append(
             score_review_safety(brief, ex.expected_requires_human_review)
         )
 
-    order = ("brief_groundedness", "citation_accuracy", "diff_accuracy", "review_safety")
     results = tuple(
         EvalMetricResult(
             metric=metric,
             score=round(agg[metric].mean, 4),
-            threshold=thresholds.get(metric, THRESHOLDS[metric]),
-            passed=round(agg[metric].mean, 4) >= thresholds.get(metric, THRESHOLDS[metric]),
+            threshold=thresholds[metric],
+            passed=round(agg[metric].mean, 4) >= thresholds[metric],
         )
-        for metric in order
+        for metric in SCORED
     )
-    return EvalReport(dataset=str(dataset), results=results, n_examples=len(examples))
+    # And the corpus must be able to express every bar that claims a rate. The denominators are
+    # NOT the brief count: brief_groundedness is a fraction over the CLAIMS and material deltas a
+    # brief carries, which is the whole point of making it claim level, and citation_accuracy is
+    # a fraction over the citations the briefs actually carry.
+    assert_denominator_supports(
+        thresholds["brief_groundedness"], produced["grounded_units"], metric="brief_groundedness"
+    )
+    assert_denominator_supports(
+        thresholds["citation_accuracy"], produced["citations"], metric="citation_accuracy"
+    )
+    assert_denominator_supports(thresholds["diff_accuracy"], len(examples), metric="diff_accuracy")
+    return EvalReport(
+        dataset=str(dataset),
+        results=results,
+        n_examples=len(examples),
+        dataset_digest=dataset_digest(dataset),
+        evaluator="offline heuristic (no cloud creds)",
+    )
 
 
 def run_gate(dataset: Path) -> tuple[EvalReport, bool]:
