@@ -45,7 +45,7 @@ it is rather than the rule being guessed from the number.
 | `brief_groundedness` | 0.8 | a rate; needs 5 positives | Fraction of briefs whose narrative and material competitor deltas all carry at least one citation. A brief built on uncited claims fails. |
 | `citation_accuracy` | 0.9 | a rate; needs 10 positives | Fraction of cited source ids that appear in the retrieved / derived evidence set (no fabricated citations). |
 | `diff_accuracy` | 0.8 | a rate; needs 5 positives | Fraction of golden cases where the deterministic competitor-move diff produced the expected count of material deltas for the (market, vertical). |
-| `review_safety` | 0.99 | all or nothing | Every brief's maker-checker flag matches the golden expectation, so a brief cannot stop requiring human review without the gate saying so. |
+| `review_safety` | 1 | all or nothing | Every brief's maker-checker flag matches the golden expectation, so a brief cannot stop requiring human review without the gate saying so. |
 
 Scored over 6 golden briefs.
 
