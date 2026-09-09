@@ -1,0 +1,27 @@
+# Scored by: eval/run_eval.py::score_citation_accuracy against the brief's OWN retrieved and
+# derived evidence set: the research sources, the claims' citations, and the competitor deltas'
+# and SWOT items' citations. A cited source outside that set is a fabricated provenance.
+#
+# The independent oracle is the evidence set, not the citation list: comparing the citations
+# with themselves would be a tautology with a threshold.
+metric: citation_accuracy
+description: >
+  Share of the brief's citations that resolve to a source it actually retrieved or derived. A
+  citation to anything else is invented provenance.
+threshold: 0.90
+direction: maximize
+applies_to:
+  - MarketBrief.citations
+criteria:
+  - id: resolves_to_retrieved_evidence
+    description: The cited source id is in the brief's own retrieved or derived evidence set.
+    weight: 1.0
+scoring:
+  scale: [0.0, 1.0]
+  pass_if: "score >= threshold"
+denominator:
+  # A rate over the citations the briefs actually emit, not over the six briefs. eval/run_eval.py
+  # counts them during the run and asserts the relationship, because a bar the corpus cannot
+  # express is a 1.0 wearing a friendlier label.
+  kind: rate
+  over: citations the briefs carry
