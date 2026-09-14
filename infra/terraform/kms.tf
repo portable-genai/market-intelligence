@@ -10,6 +10,7 @@
 #         global / multi-region key. Regional CMEK is what pins crypto material in-country.
 
 resource "google_kms_key_ring" "mkt" {
+  count    = var.cmek_enabled ? 1 : 0
   name     = "mkt-market-intel-ring"
   location = var.region # the selected region : regional, in-country key material (SPEC 2)
 
@@ -17,8 +18,9 @@ resource "google_kms_key_ring" "mkt" {
 }
 
 resource "google_kms_crypto_key" "mkt" {
+  count    = var.cmek_enabled ? 1 : 0
   name     = "mkt-market-intel-cmek"
-  key_ring = google_kms_key_ring.mkt.id
+  key_ring = one(google_kms_key_ring.mkt[*].id)
 
   purpose         = "ENCRYPT_DECRYPT"
   rotation_period = "7776000s" # 90 days : periodic rotation for key hygiene
@@ -44,28 +46,32 @@ data "google_project" "this" {
 
 # Cloud Run service agent (encrypts the serving revision with CMEK).
 resource "google_kms_crypto_key_iam_member" "run" {
-  crypto_key_id = google_kms_crypto_key.mkt.id
+  count         = var.cmek_enabled ? 1 : 0
+  crypto_key_id = one(google_kms_crypto_key.mkt[*].id)
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.this.number}@serverless-robot-prod.iam.gserviceaccount.com"
 }
 
 # Discovery Engine (GenAI File Search / Agent Search) service agent : CMEK on the corpus index.
 resource "google_kms_crypto_key_iam_member" "discoveryengine" {
-  crypto_key_id = google_kms_crypto_key.mkt.id
+  count         = var.cmek_enabled ? 1 : 0
+  crypto_key_id = one(google_kms_crypto_key.mkt[*].id)
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.this.number}@gcp-sa-discoveryengine.iam.gserviceaccount.com"
 }
 
 # Vertex AI / Agent Platform service agent : CMEK on reasoning / eval / agent state.
 resource "google_kms_crypto_key_iam_member" "aiplatform" {
-  crypto_key_id = google_kms_crypto_key.mkt.id
+  count         = var.cmek_enabled ? 1 : 0
+  crypto_key_id = one(google_kms_crypto_key.mkt[*].id)
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.this.number}@gcp-sa-aiplatform.iam.gserviceaccount.com"
 }
 
 # Cloud Logging service agent : CMEK on the WORM audit bucket.
 resource "google_kms_crypto_key_iam_member" "logging" {
-  crypto_key_id = google_kms_crypto_key.mkt.id
+  count         = var.cmek_enabled ? 1 : 0
+  crypto_key_id = one(google_kms_crypto_key.mkt[*].id)
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.this.number}@gcp-sa-logging.iam.gserviceaccount.com"
 }

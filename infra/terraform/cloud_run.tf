@@ -24,7 +24,7 @@ resource "google_cloud_run_v2_service" "api" {
   template {
     # Encrypt the revision with the regional CMEK key (CMEK does not cascade : kms.tf binds
     # the Cloud Run service agent to the key).
-    encryption_key                   = google_kms_crypto_key.mkt.id
+    encryption_key                   = one(google_kms_crypto_key.mkt[*].id)
     service_account                  = google_service_account.runtime.email
     max_instance_request_concurrency = 80
 
@@ -63,7 +63,7 @@ resource "google_cloud_run_v2_service" "api" {
       }
       env {
         name  = "MKT_INTEL_KMS_KEY"
-        value = google_kms_crypto_key.mkt.id
+        value = one(google_kms_crypto_key.mkt[*].id)
       }
 
       startup_probe {

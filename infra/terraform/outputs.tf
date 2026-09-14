@@ -16,7 +16,7 @@ output "region" {
 # --------------------------------- KMS -------------------------------------- #
 output "kms_key" {
   description = "Regional CMEK crypto key id (export as MKT_INTEL_KMS_KEY)."
-  value       = google_kms_crypto_key.mkt.id
+  value       = one(google_kms_crypto_key.mkt[*].id)
 }
 
 # ------------------------------- WORM logging ------------------------------- #
