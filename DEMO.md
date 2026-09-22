@@ -129,13 +129,12 @@ mkt-intel brief "multi-currency wallets"   --market JP --vertical banking       
 mkt-intel brief "loyalty programmes"       --market AU --vertical online_retail  # australia-southeast1
 ```
 
-The `gcp` adapters wrap the **Gemini Deep Research API** plus **Grounding with Google
-Search** for market research and competitor analysis, the **Gemini File Search** tool for the
-internal brand/research corpus, **Gemini** for narration, and the managed equivalents for
-audit (**Cloud Logging** WORM), tracing (**Cloud Trace** via OpenTelemetry), the agent
-registry (A2A AgentCard), the tool catalog (MCP) and the promotion gate (**Gen AI evaluation
-service**). Every Google SDK import is lazy, so the local and on-prem profiles import the
-package with no `google-*` installed.
+The `gcp` adapters wrap **Gemini with Grounding with Google Search** for market research and
+competitor analysis, the **Gemini File Search** tool for the internal brand/research corpus,
+**Gemini** for narration, and the managed equivalents for audit (**Cloud Logging** WORM),
+tracing (**Cloud Trace** via OpenTelemetry), the agent registry (A2A AgentCard), the tool
+catalog (MCP) and the promotion gate (**Gen AI evaluation service**). Every Google SDK import
+is lazy, so the local and on-prem profiles import the package with no `google-*` installed.
 
 The residency region is selectable per market and **validated** against the per-market
 allow-list (JP `asia-northeast1`, AU `australia-southeast1`, SG `asia-southeast1`). A region

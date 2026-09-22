@@ -3,7 +3,7 @@
 # Control map:
 #   Least privilege (SPEC 3): a single dedicated runtime identity for the serving / API
 #         workload, granted only the roles its bound gcp adapters need : call Gemini /
-#         Deep Research / eval and File Search (aiplatform.user covers Discovery Engine
+#         Search grounding / eval and File Search (aiplatform.user covers Discovery Engine
 #         retrieval and Vertex reasoning), screen with Model Armor, write audit events to
 #         the WORM sink, and emit trace spans. No broad / kitchen-sink role.
 #   No service-account keys: the identity is used via Workload Identity (Cloud Run sets it as
@@ -19,10 +19,10 @@ resource "google_service_account" "runtime" {
 }
 
 locals {
-  # Serving path: external Deep Research + Gemini + eval + File Search retrieval, Model Armor
+  # Serving path: Gemini with Google Search grounding + eval + File Search retrieval, Model Armor
   # screening, audit write, trace spans. Read-only against managed sources; no write to them.
   runtime_roles = [
-    "roles/aiplatform.user",         # Gemini reasoning + Deep Research + Gen AI eval + A2A/MCP
+    "roles/aiplatform.user",         # Gemini reasoning + Search grounding + Gen AI eval + A2A/MCP
     "roles/discoveryengine.viewer",  # query the File Search / Agent Search corpus
     "roles/modelarmor.user",         # input/output guardrail screening
     "roles/logging.logWriter",       # write audit events to the WORM sink

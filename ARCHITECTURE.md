@@ -34,7 +34,7 @@ portable across vendors, and honest about its boundaries.
 
 | Profile | Role | Backing |
 |---|---|---|
-| `gcp` | primary, managed | Gemini Deep Research API, Grounding with Google Search, File Search, Model Armor, Cloud Logging WORM, Cloud Trace, Gen AI eval. SDK imports are lazy. |
+| `gcp` | primary, managed | Gemini grounded with Google Search, File Search, Model Armor, Cloud Logging WORM, Cloud Trace, Gen AI eval. SDK imports are lazy. |
 | `local` | dev / test / CI default | a WORKING offline stack: a deterministic deep-research synthesizer over a seeded SQLite FTS5 corpus, a deterministic schema-driven LLM, a heuristic guardrail, append-only audit, no-op tracer, in-process registry / tool-catalog, the offline eval gate. SDK-free and seedable. |
 | `platform` | shared-platform reuse | thin HTTP clients to the shared `agent-guardrail-gateway`, `enterprise-knowledge-base`, `agent-registry`, `model-quality-gate` eval, `agent-observability`. |
 | `onprem` | portability proof | fail-fast `NotImplementedError` stubs satisfying the same Protocols. |
@@ -72,7 +72,7 @@ Each market's residency region is validated and selectable at deploy via
 `Settings.market_profile().region` (JP `asia-northeast1`, AU `australia-southeast1`,
 SG `asia-southeast1`). The GCP adapters construct their clients against the resolved region,
 and the WORM audit bucket is regional. Web egress on the `gcp` profile is contained in the
-Deep Research grounding sub-agent.
+Google Search grounding sub-agent.
 
 ## Auditability
 

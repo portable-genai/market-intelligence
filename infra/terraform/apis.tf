@@ -18,7 +18,7 @@
 locals {
   required_services = [
     # --- Services backing a bound gcp adapter (SPEC 3 port table) ---
-    "aiplatform.googleapis.com",      # Gemini reasoning + Deep Research + Gen AI eval + A2A/MCP
+    "aiplatform.googleapis.com",      # Gemini reasoning + Search grounding + Gen AI eval + A2A/MCP
     "discoveryengine.googleapis.com", # File Search / Agent Search over the internal corpus
     "modelarmor.googleapis.com",      # Model Armor guardrail (input/output screening)
     "logging.googleapis.com",         # Cloud Logging (WORM locked bucket + audit sink)
