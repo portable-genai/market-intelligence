@@ -1,6 +1,6 @@
 """ResearchPort — deep research / web grounding plus competitor snapshots.
 
-Primary GCP adapter: the **Gemini Deep Research API** with Grounding with Google Search,
+Primary GCP adapter: Gemini with **Grounding with Google Search**,
 isolated so web egress stays in the grounding sub-agent. The port returns raw research
 (sources + extracted claims) and the previous/current competitor-move snapshots that the
 deterministic diff engine compares; it never synthesises the brief itself.

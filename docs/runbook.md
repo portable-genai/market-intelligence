@@ -18,7 +18,8 @@ neither the relaxations nor the restrictions.
 - `local` (SDK-free): the whole pipeline runs offline (SQLite FTS5 corpus,
   deterministic deep-research synthesiser and LLM). No Google Cloud SDK. This is what CI and
   the demo run.
-- `gcp`: the managed stack (Gemini Deep Research, File Search, Model Armor, Cloud Logging).
+- `gcp`: the managed stack (Gemini with Google Search grounding, File Search, Model Armor,
+  Cloud Logging).
 - `platform`: consume the shared Hrz services (KB / guardrail / audit / eval / registry) over
   S2S instead of standalone GCP clients.
 - `onprem`: fail-fast placeholders that raise `NotImplementedError`, the migration target

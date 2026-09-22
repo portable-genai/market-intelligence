@@ -35,7 +35,7 @@ and at runtime if pointed off-allowlist.
 
 `apis.tf` enables only what the `gcp` profile actually calls (`config/settings.yaml` `adapters:`):
 
-- `aiplatform.googleapis.com` : Gemini reasoning, Deep Research, Gen AI eval, A2A / MCP catalog.
+- `aiplatform.googleapis.com` : Gemini reasoning and Google Search grounding, Gen AI eval, A2A / MCP catalog.
 - `discoveryengine.googleapis.com` : File Search / Agent Search over the internal corpus.
 - `modelarmor.googleapis.com` : Model Armor guardrail (input / output screening).
 - `logging.googleapis.com` : Cloud Logging WORM bucket + audit sink.

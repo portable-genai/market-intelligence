@@ -5,7 +5,7 @@ Cloud services) and ``onprem`` (fail-fast migration placeholders). Unlike ``onpr
 adapter here is a *real, deterministic* implementation that runs the whole market-brief
 pipeline end to end with **no Google Cloud, no API key, and no running emulators**:
 
-* Deep research (Gemini Deep Research API) -> a deterministic synthesizer over the seeded
+* Web research (Gemini grounded with Google Search) -> a deterministic synthesizer over the seeded
   fictional corpus (sources + claims + competitor snapshots), spanning banking AND online
   retail across JP / AU / SG.
 * Internal corpus / File Search (A2) -> a ``sqlite3`` **FTS5** index over the seeded

@@ -255,7 +255,7 @@ class ModelSettings:
 
 @dataclass(frozen=True)
 class DeepResearchSettings:
-    """Gemini Deep Research API knobs (used by the GCP adapter only)."""
+    """Grounded web-research knobs (used by the GCP adapter only)."""
 
     model: str = "gemini-3.5-flash"
     max_sources: int = 12

@@ -44,7 +44,7 @@ profile switch:
 
 | Profile | Role | Backed by |
 |---|---|---|
-| `gcp` | primary | Gemini Deep Research API, Grounding with Google Search, File Search, Model Armor, Cloud Logging WORM, Cloud Trace, Gen AI eval (lazy SDK imports) |
+| `gcp` | primary | Gemini grounded with Google Search, File Search, Model Armor, Cloud Logging WORM, Cloud Trace, Gen AI eval (lazy SDK imports) |
 | `local` | dev / test / CI default | a WORKING offline stack: SQLite FTS5 corpus, a deterministic deep-research synthesizer, a deterministic LLM, all SDK-free and seedable |
 | `platform` | shared-platform reuse | thin HTTP clients to the shared `agent-guardrail-gateway`, `enterprise-knowledge-base`, `agent-registry`, `model-quality-gate`, `agent-observability` services |
 | `onprem` | portability proof | fail-fast `NotImplementedError` stubs satisfying the same Protocols |
@@ -82,7 +82,7 @@ python eval/run_eval.py            # exit 0 iff every metric clears its threshol
 
 | Port | Concern | GCP adapter | Local adapter |
 |---|---|---|---|
-| `ResearchPort` | deep research / web grounding + competitor snapshots | Gemini Deep Research + Google Search | deterministic synthesizer over the seeded corpus |
+| `ResearchPort` | deep research / web grounding + competitor snapshots | Gemini + Grounding with Google Search | deterministic synthesizer over the seeded corpus |
 | `LlmPort` | narration / drafting (never the numbers) | Gemini | deterministic schema-driven narrator |
 | `KnowledgeBasePort` | internal research / brand corpus | File Search / Agent Search | SQLite FTS5 index |
 | `GuardrailPort` | input/output safety | Model Armor | heuristic |

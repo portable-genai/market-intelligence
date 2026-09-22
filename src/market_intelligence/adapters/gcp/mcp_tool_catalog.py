@@ -43,8 +43,8 @@ def _build_catalog() -> dict[str, ToolSpec]:
         "deep_research": ToolSpec(
             name="deep_research",
             description=(
-                "Run grounded deep research over the web (Gemini Deep Research + Google "
-                "Search) for a topic and return cited sources and extracted claims."
+                "Run grounded research over the web (Gemini with Google Search grounding) "
+                "for a topic and return cited sources and extracted claims."
             ),
             input_schema={
                 "type": "object",

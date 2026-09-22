@@ -1,7 +1,7 @@
 """On-prem placeholder for ``ResearchPort`` — the sovereign migration target.
 
 A reversibility (no-lock-in) placeholder: in the managed profile this port binds to the
-Gemini Deep Research adapter; switching ``profile`` to ``onprem`` rebinds it here. The
+grounded Gemini research adapter; switching ``profile`` to ``onprem`` rebinds it here. The
 adapter constructs cleanly with **no external dependencies** and structurally satisfies the
 same Protocol, so the contract tests prove interface parity. Porting D1 on-premise is only
 a matter of filling these bodies in; the domain orchestration does not change.

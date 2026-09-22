@@ -1,11 +1,12 @@
-"""Gemini Deep Research adapter (ResearchPort) — GCP managed stack.
+"""Grounded web-research adapter (ResearchPort) — GCP managed stack.
 
-The primary D1 research backend: the **Gemini Deep Research API** for market research and
-competitor analysis, plus **Grounding with Google Search** for live external evidence. Web
-egress is isolated in this single grounding sub-agent so it never mixes with the internal
+The primary D1 research backend: **Gemini with Grounding with Google Search** for market
+research, competitor analysis and live external evidence. It is one grounded
+``generate_content`` call, not the Gemini Deep Research agent, whatever the class name says.
+Web egress is isolated in this single grounding sub-agent so it never mixes with the internal
 File Search corpus (per the SPEC, one built-in tool per agent).
 
-The adapter drives the Deep Research flow over the unified **Google GenAI SDK**
+The adapter drives the grounded call over the unified **Google GenAI SDK**
 (``google-genai``) on the **Gemini Enterprise Agent Platform** (Vertex backend), structures
 the model's output into the domain :class:`ResearchResult` (cited :class:`ResearchSource` +
 extracted :class:`Claim`) and the previous/current :class:`CompetitorMove` snapshots the

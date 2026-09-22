@@ -1,11 +1,11 @@
 """Local research adapter (ResearchPort) — deterministic deep-research synthesizer.
 
-The ``local`` profile's stand-in for the **Gemini Deep Research API + Grounding with
-Google Search**: a deterministic, seedable synthesizer over the bundled fictional corpus
-(``_seed.py``), with no model and no network. It returns cited sources and extracted
-claims for the requested (topic, market, vertical), and the previous/current competitor
-snapshots the deterministic diff engine compares. SDK-free and unconditional (there is no
-emulator for Deep Research), and reproducible so the offline CLI and the unit tests agree.
+The ``local`` profile's stand-in for **Gemini grounded with Google Search**: a deterministic,
+seedable synthesizer over the bundled fictional corpus (``_seed.py``), with no model and no
+network. It returns cited sources and extracted claims for the requested (topic, market,
+vertical), and the previous/current competitor snapshots the deterministic diff engine
+compares. SDK-free and unconditional (there is no emulator for Google Search grounding), and
+reproducible so the offline CLI and the unit tests agree.
 """
 
 from __future__ import annotations
