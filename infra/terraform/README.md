@@ -55,7 +55,7 @@ DLP, Cloud Storage or AlloyDB adapter in this repo, so those APIs are intentiona
 
 ## WARNING : irreversible locks
 
-- `logging_worm.tf` sets `locked = true` on the audit bucket. This permanently prevents
+- `worm_locked = true` locks the audit bucket (`logging_worm.tf`); it has no default. This permanently prevents
   reducing retention or deleting the bucket for the full window (~7 years). Confirm
   `retention_days` before the first apply.
 - The CMEK key has `prevent_destroy = true`. Destroying it would strand all encrypted data.
