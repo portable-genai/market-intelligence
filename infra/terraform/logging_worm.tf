@@ -1,30 +1,30 @@
-# logging_worm.tf : WORM audit trail : locked Cloud Logging bucket + sink + audit config.
+# logging_worm.tf : WORM audit trail : lockable Cloud Logging bucket + sink + audit config.
 #
 # Control map:
 #   Immutable audit / WORM (SPEC 3 AuditSinkPort, SPEC 5 maker-checker): the audit log is
 #         routed to a Cloud Logging bucket whose retention is var.retention_days (~7 years)
-#         and whose `locked = true` makes it Write-Once-Read-Many. The gcp audit adapter
+#         and whose lock (var.worm_locked) makes it Write-Once-Read-Many. The gcp audit adapter
 #         (cloud_logging_audit) writes the Decision.ESCALATED maker-checker records here.
 #   Residency (SPEC 2): bucket location is var.region (the selected, allowlisted region).
 #   CMEK explicit: the bucket is CMEK-encrypted (logging SA key binding in kms.tf).
 #
 # ############################################################################ #
 # # WARNING : LOCKING IS IRREVERSIBLE.                                        # #
-# # Setting `locked = true` below permanently prevents reducing retention or  # #
+# # Setting worm_locked = true permanently prevents reducing retention or     # #
 # # deleting this bucket for the full retention window. You CANNOT undo it,   # #
 # # not even with project-owner rights. Confirm retention_days before apply.  # #
-# # To trial without locking, set locked = false (NOT compliant for prod).    # #
+# # No default: state worm_locked. false keeps it deletable (NOT for prod).   # #
 # ############################################################################ #
 
 resource "google_logging_project_bucket_config" "worm_audit" {
   project        = var.project_id
   location       = var.region                 # the selected region (SPEC 2)
   bucket_id      = "market-intelligence-worm" # matches settings.yaml logging.bucket
-  description    = "WORM audit bucket for market-intelligence market intelligence (locked, ~7y retention)."
+  description    = "WORM audit bucket for market-intelligence market intelligence (lockable, ~7y retention)."
   retention_days = var.retention_days # 2557 (~7 years) by default
 
-  # IRREVERSIBLE : see WARNING banner above. WORM compliance requires this true.
-  locked = true
+  # IRREVERSIBLE when true (see the warning banner above), and never defaulted.
+  locked = var.worm_locked
 
   # CMEK on the log bucket : explicit, does not cascade.
   dynamic "cmek_settings" {
@@ -40,11 +40,11 @@ resource "google_logging_project_bucket_config" "worm_audit" {
   ]
 }
 
-# Route the audit log stream into the locked WORM bucket.
+# Route the audit log stream into the WORM audit bucket.
 resource "google_logging_project_sink" "audit_to_worm" {
   project     = var.project_id
   name        = "market-intelligence-audit-to-worm"
-  description = "Routes the market-intelligence-audit log to the locked WORM bucket."
+  description = "Routes the market-intelligence-audit log to the WORM audit bucket."
 
   destination = "logging.googleapis.com/${google_logging_project_bucket_config.worm_audit.id}"
 
