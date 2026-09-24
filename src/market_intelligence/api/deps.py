@@ -7,6 +7,7 @@ into the domain orchestrator, so the CLI, API and agent layers share identical w
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Any
 
 from ..config import Container, Settings, build_container
 from ..domain.dedup_service import ClaimDedupService
@@ -25,7 +26,15 @@ def get_settings() -> Settings:
     return get_container().settings
 
 
-def make_brief_service(container: Container | None = None) -> MarketBriefService:
+def make_brief_service(
+    container: Container | None = None, *, review_router: Any = None
+) -> MarketBriefService:
+    """Build the brief service; ``review_router`` replaces the container's for one call.
+
+    A caller that reports the hand-off passes a
+    :class:`~market_intelligence.adapters.controls.RecordingReviewRouter` wrapping the
+    container's router, so what it returns can say whether the brief reached the review console.
+    """
     container = container or get_container()
     policy = container.settings.policy
     return MarketBriefService(
@@ -51,5 +60,5 @@ def make_brief_service(container: Container | None = None) -> MarketBriefService
             opportunity_trend_score=policy.swot_opportunity_trend_score,
             max_options=policy.swot_max_options,
         ),
-        review_router=container.review_router,
+        review_router=review_router or container.review_router,
     )

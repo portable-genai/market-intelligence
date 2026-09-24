@@ -152,8 +152,11 @@ def brief(
     ),
 ) -> None:
     """Build a cited market brief for a topic in a market and vertical."""
-    from ..api.deps import make_brief_service
+    from ..adapters.controls import RecordingReviewRouter
+    from ..api.deps import get_container, make_brief_service
     from ..domain.models import BriefRequest, Market, Vertical
+
+    routing: RecordingReviewRouter | None = None
 
     def go() -> MarketBrief:
         request = BriefRequest(
@@ -162,10 +165,15 @@ def brief(
             vertical=Vertical(vertical),
             competitors=tuple(competitor or ()),
         )
-        return make_brief_service().build_brief(request, actor=_CLI_ACTOR)
+        nonlocal routing
+        routing = RecordingReviewRouter(get_container().review_router)
+        return make_brief_service(review_router=routing).build_brief(request, actor=_CLI_ACTOR)
 
     result = _run("brief", go)
     _echo_brief(result)
+    if routing is not None:
+        # Rule R8 on the CLI path too: say where the escalation went, not only that it exists.
+        typer.echo(f"human review hand-off: {routing.outcome.value}")
 
 
 @app.command("competitor-analysis")

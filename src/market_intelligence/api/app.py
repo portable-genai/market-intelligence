@@ -23,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from hex_service_kit import cors_allowlist, resolve_bind_host
 from hex_service_kit.web import add_loopback_exposure_guard
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import end_user_auth_kind
 from ..domain.errors import GuardrailBlockedError, ResearchEmptyError
 from ..domain.identity import IdentityError
@@ -299,15 +300,23 @@ def personas() -> list[dict[str, str]]:
 @app.post("/v1/brief")
 def build_brief(body: BriefRequestModel, principal: CurrentPrincipal) -> dict:
     request = _to_request(body)
+    # The hand-off never fails an already-built, already-audited brief; the response says what
+    # happened to it instead (the fleet's runtime-control contract).
+    routing = RecordingReviewRouter(deps.get_container().review_router)
     try:
-        brief = make_brief_service().build_brief(request, actor=principal.actor)
+        brief = make_brief_service(review_router=routing).build_brief(
+            request, actor=principal.actor
+        )
     except GuardrailBlockedError as exc:
         raise HTTPException(status_code=400, detail=f"guardrail blocked: {exc}") from exc
     except ResearchEmptyError as exc:
         raise HTTPException(status_code=404, detail=f"no grounding evidence: {exc}") from exc
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
-    return to_jsonable(brief)
+    payload: dict = to_jsonable(brief)
+    # What happened to the human-review hand-off: routed, failed, off or not_required.
+    payload["review_routing"] = routing.outcome.value
+    return payload
 
 
 @app.post("/v1/competitor-analysis")
