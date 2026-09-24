@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import Container, Settings, build_container
 
 if TYPE_CHECKING:  # pragma: no cover - typing only, never imported at runtime
@@ -37,10 +38,10 @@ def _container(settings: Settings | None) -> Container:
     return build_container(settings)
 
 
-def _brief_service(container: Container) -> Any:
+def _brief_service(container: Container, review_router: Any = None) -> Any:
     from ..api.deps import make_brief_service
 
-    return make_brief_service(container)
+    return make_brief_service(container, review_router=review_router)
 
 
 def _request(
@@ -84,13 +85,21 @@ def build_market_brief(
       actor: Authenticated identity the request is made for.
 
     Returns:
-      A JSON-safe ``MarketBrief`` dict.
+      A JSON-safe ``MarketBrief`` dict, with ``review_routing`` saying whether the brief
+      reached the human-review console (``routed``), could not (``failed``), or routing is
+      ``off``.
     """
     from ..domain.serialization import to_jsonable
 
     c = _container(settings)
     request = _request(topic, market, vertical, tuple(competitors or ()))
-    return to_jsonable(_brief_service(c).build_brief(request, actor=actor))
+    routing = RecordingReviewRouter(c.review_router)
+    payload: dict[str, Any] = to_jsonable(
+        _brief_service(c, routing).build_brief(request, actor=actor)
+    )
+    # The brief is always a maker-checker item; the agent is told whether it is actually queued.
+    payload["review_routing"] = routing.outcome.value
+    return payload
 
 
 def competitor_analysis(

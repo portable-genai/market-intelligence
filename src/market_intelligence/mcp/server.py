@@ -20,8 +20,10 @@ from typing import Any
 
 from hex_service_kit import mcpserve
 
+from ..adapters.controls import RecordingReviewRouter
 from ..config import build_container
 from ..domain.models import BriefRequest, Market, RetrievalQuery, Vertical
+from ..domain.serialization import to_jsonable
 
 #: The tools this module answers, as data, so a test can hold it against the catalog.
 HANDLER_NAMES: tuple[str, ...] = ("deep_research", "search_internal_corpus", "competitor_analysis")
@@ -48,11 +50,22 @@ def _request(arguments: dict[str, Any]) -> BriefRequest:
 
 
 def build_handlers(actor: str) -> dict[str, mcpserve.Handler]:
-    """Bind each declared tool to the service or port that already performs it."""
-    from ..api.app import make_brief_service
+    """Bind each declared tool to the service or port that already performs it.
+
+    ``deep_research`` builds a brief and hands it to the review router, so it goes through
+    :class:`RecordingReviewRouter` and returns what happened to the hand-off
+    (``review_routing``); a failed hand-off is logged by exception type rather than swallowed.
+    """
+    from ..api.deps import get_container, make_brief_service
 
     def deep_research(**arguments: Any) -> Any:
-        return make_brief_service().build_brief(_request(arguments), actor=actor)
+        routing = RecordingReviewRouter(get_container().review_router)
+        brief = make_brief_service(review_router=routing).build_brief(
+            _request(arguments), actor=actor
+        )
+        payload: dict[str, Any] = to_jsonable(brief)
+        payload["review_routing"] = routing.outcome.value
+        return payload
 
     def competitor_analysis(**arguments: Any) -> Any:
         return make_brief_service().competitor_analysis(_request(arguments), actor=actor)
