@@ -12,7 +12,7 @@ is decision support, never an auto-executed action.
 
 | Setting | Env | Values | Notes |
 |---|---|---|---|
-| `profile` | `MKT_INTEL_PROFILE` | `gcp` `local` `platform` `onprem` | selects the adapter stack; no default, an unset value grants no relaxation and refuses end-user identity |
+| `profile` | `MKT_INTEL_PROFILE` | `gcp` `local` `live` `platform` `onprem` | selects the adapter stack; no default, an unset value grants no relaxation and refuses end-user identity |
 | `vertical` | `MKT_VERTICAL` | `banking` `online_retail` | the active vertical |
 | `market` | `MKT_MARKET` | `JP` `AU` `SG` | the active market |
 | `grounding_enabled` | `MKT_GROUNDING_ENABLED` | bool | public-web grounding switch |

@@ -46,6 +46,7 @@ profile switch:
 |---|---|---|
 | `gcp` | primary | Gemini grounded with Google Search, File Search, Model Armor, Cloud Logging WORM, Cloud Trace, Gen AI eval (lazy SDK imports) |
 | `local` | dev / test / CI default | a WORKING offline stack: SQLite FTS5 corpus, a deterministic deep-research synthesizer, a deterministic LLM, all SDK-free and seedable |
+| `live` | laptop demo with real research | Gemini grounded with Google Search for research and Gemini for narration; every other port is the `local` adapter, with `local`'s laptop posture. Needs `pip install -e '.[live]'`, `GOOGLE_CLOUD_PROJECT` and `gcloud auth application-default login`; without them the app still starts and each research request answers 503 naming what is missing |
 | `platform` | shared-platform reuse | thin HTTP clients to the shared `agent-guardrail-gateway`, `enterprise-knowledge-base`, `agent-registry`, `model-quality-gate`, `agent-observability` services |
 | `onprem` | portability proof | fail-fast `NotImplementedError` stubs satisfying the same Protocols |
 

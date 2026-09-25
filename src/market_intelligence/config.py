@@ -28,13 +28,20 @@ import yaml
 from hex_service_kit.netdefaults import ConfiguredEmptyError, EnvSetting, read_env_setting
 
 from .domain.models import MARKET_PROFILES, Market, MarketProfile, Vertical
-from .envread import boolean_setting, optional_setting, setting_or_default
+from .envread import boolean_setting, optional_setting, parse_boolean, setting_or_default
 from .ports.identity import CLIENT_ASSERTED, declared_end_user_auth
 
 _ENV_PATTERN = re.compile(r"\$\{([A-Z0-9_]+)(?::-(.*?))?\}")
 
 _PROFILE_ENV = "MKT_INTEL_PROFILE"
-RUNTIME_PROFILES = frozenset({"local", "gcp", "platform", "onprem"})
+RUNTIME_PROFILES = frozenset({"local", "live", "gcp", "platform", "onprem"})
+
+#: The profiles that run on the operator's laptop and so take the laptop posture: loopback bind,
+#: seeded dev personas, CORS dev origins, in-process stores. ``live`` differs from ``local`` only
+#: in that its research and narration call Gemini (grounded with Google Search), because an
+#: online search tool is this use case's core (owner rule, 2026-09-23). Everything posture-shaped
+#: keys off this set rather than off the string ``local``, so the two cannot drift apart.
+LAPTOP_PROFILES: frozenset[str] = frozenset({"local", "live"})
 
 #: The profile string handed to every INTERNET-FACING relaxation when the profile was never
 #: chosen. Deliberately NOT a member of :data:`RUNTIME_PROFILES` and never reaches an adapter
@@ -77,6 +84,11 @@ _GENERATOR_PORT: str = "llm"
 #: chosen per repository. Resolving it from a path named ONCE here keeps the banner reading the
 #: same value the adapter passes to the model call, instead of a second copy that drifts.
 _GENERATOR_MODEL_ATTR: str = "models.reasoning"
+
+#: The SDK-free adapter family. A generator bound here is the deterministic stub, whatever the
+#: profile is called; one bound anywhere else calls a managed model, which is how ``live`` (a
+#: laptop process whose model is Gemini) reports the model that actually answers.
+_LOCAL_ADAPTER_PACKAGE: str = "market_intelligence.adapters.local."
 
 #: Constant names a managed adapter may declare its model id under. Several spellings because
 #: the fleet uses several, and a resolver that knew only one would report a bound model as
@@ -175,9 +187,21 @@ class ProfileChoice:
         """The profile the bind guard keys off, where ``local`` is the RESTRICTIVE case.
 
         ``resolve_bind_host`` confines ``local`` to loopback and lets fronted profiles take
-        ``0.0.0.0``, so here an unconsented run must look like ``local`` and stay on loopback.
+        ``0.0.0.0``, so here an unconsented run must look like ``local`` and stay on loopback,
+        and so must ``live``: it serves the same seeded personas, which authenticate nobody.
         """
-        return self.profile if self.explicit else "local"
+        if not self.explicit or self.profile in LAPTOP_PROFILES:
+            return "local"
+        return self.profile
+
+    @property
+    def laptop_posture(self) -> bool:
+        """Was a laptop profile (:data:`LAPTOP_PROFILES`) chosen DELIBERATELY?
+
+        The relaxations ``local`` grants (CORS dev origins, the seeded personas) key off this,
+        so ``live`` gets them too and an unconsented run still gets none of them.
+        """
+        return self.explicit and self.profile in LAPTOP_PROFILES
 
 
 def _profile_setting(environ: Mapping[str, str] | None) -> EnvSetting:
@@ -393,7 +417,7 @@ class MarketOverride:
 class Settings:
     project_id: str = "your-gcp-project"
     region: str = "asia-southeast1"  # default residency region; per-market profile overrides
-    profile: str = "local"  # local (default, SDK-free) | gcp | platform | onprem
+    profile: str = "local"  # local (default, SDK-free) | live | gcp | platform | onprem
     vertical: str = "banking"  # banking | online_retail (the active vertical)
     market: str = "SG"  # JP | AU | SG (the active market)
     grounding_enabled: bool = False
@@ -435,6 +459,11 @@ class Settings:
     def bind_profile(self) -> str:
         """The profile the bind guard keys off, where ``local`` is the RESTRICTIVE case."""
         return self.profile_choice.bind_profile
+
+    @property
+    def laptop_posture(self) -> bool:
+        """A deliberately chosen laptop profile (``local`` or ``live``); see ProfileChoice."""
+        return self.profile_choice.laptop_posture
 
     @property
     def active_vertical(self) -> Vertical:
@@ -496,6 +525,12 @@ class Settings:
         known = {f for f in Settings.__dataclass_fields__ if f not in nested} - {"profile_explicit"}
         flat: dict[str, Any] = {k: v for k, v in raw.items() if k in known}
         flat.pop("controls", None)  # the switches are read from the environment, below
+        # ``${MKT_GROUNDING_ENABLED:-true}`` interpolates to TEXT, and the string "false" is
+        # truthy: parse it strictly, so switching grounding off actually switches it off.
+        if isinstance(flat.get("grounding_enabled"), str):
+            flat["grounding_enabled"] = parse_boolean(
+                "grounding_enabled (MKT_GROUNDING_ENABLED)", flat["grounding_enabled"]
+            )
         settings = Settings(
             profile=choice.profile,
             profile_explicit=choice.explicit,
@@ -518,7 +553,8 @@ class Settings:
 
         ``onprem`` reads ``local`` because that is its entire point, and a managed model call
         does not make a process cloud-hosted: this states where the PROCESS runs, and
-        :attr:`generator_model` states whose model answers.
+        :attr:`generator_model` states whose model answers. ``live`` reads ``local`` for the same
+        reason: the process is on the laptop and only its research and narration call Gemini.
         """
         return "gcp" if self.profile in _MANAGED_PROFILES else "local"
 
@@ -542,11 +578,11 @@ class Settings:
         binding = str(table.get(self.profile, "") or "")
         if not binding:
             return "no-model"
-        if self.profile not in _MANAGED_PROFILES:
+        if self.profile == "onprem":
             # The on-prem adapters are fail-fast migration placeholders: they raise rather than
             # generating, so naming a model would advertise one that never answers.
-            if self.profile == "onprem":
-                return "onprem-not-implemented"
+            return "onprem-not-implemented"
+        if binding.startswith(_LOCAL_ADAPTER_PACKAGE):
             return "deterministic-offline-stub"
         # Managed. The id lives in settings in most of the fleet and on the adapter in a few,
         # so both are read here and the banner never names a model the binding does not use.

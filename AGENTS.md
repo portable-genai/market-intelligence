@@ -18,7 +18,7 @@ scoring and the SWOT synthesis are deterministic, and the model narrates the com
 | Catalog id | `market-intelligence` |
 | Package | `src/market_intelligence/` |
 | Profile variable | `MKT_INTEL_PROFILE` |
-| Adapter families | `gcp`, `local`, `onprem`, `platform` |
+| Adapter families | `gcp`, `local`, `live`, `onprem`, `platform` |
 | Gate | `make gate` (`lint format typecheck test eval demo-selftest portability`) |
 
 `config.resolve_profile` is the only reader of that variable, and it resolves three states.

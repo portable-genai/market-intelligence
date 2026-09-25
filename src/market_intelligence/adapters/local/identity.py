@@ -5,19 +5,20 @@ fully offline. This adapter resolves a :class:`Principal` from a small set of se
 personas, selected by the ``X-Dev-Persona`` request header (the UI's persona picker),
 defaulting to the first persona when none is supplied. It lets you exercise per-user
 authorization (different entitlement principals and tenants, including a cross-tenant
-persona) without standing up any identity provider. It is bound ONLY under the local
-profile; secure mode uses the IAP adapter, which verifies a real assertion.
+persona) without standing up any identity provider. It is bound ONLY under the laptop
+profiles (``local`` and ``live``); secure mode uses the IAP adapter, which verifies a real
+assertion.
 
 These personas are an UNAUTHENTICATED grant of a tenant identity, so this adapter refuses to
-construct unless the local profile was chosen deliberately: the profile must actually be
-``local`` AND ``MKT_INTEL_PROFILE`` (or the reviewed settings file) must have named it rather
-than it being inherited from a fallback. A missing env var therefore fails closed instead of
-handing out a demo identity.
+construct unless a laptop profile was chosen deliberately: the profile must actually be
+``local`` or ``live`` AND ``MKT_INTEL_PROFILE`` (or the reviewed settings file) must have
+named it rather than it being inherited from a fallback. A missing env var therefore fails
+closed instead of handing out a demo identity.
 """
 
 from __future__ import annotations
 
-from ...config import Settings
+from ...config import LAPTOP_PROFILES, Settings
 from ...domain.identity import IdentityError, Principal, RequestContext
 from ...ports.identity import CLIENT_ASSERTED
 
@@ -77,9 +78,9 @@ class LocalPersonaIdentityAdapter:
     end_user_auth = CLIENT_ASSERTED
 
     def __init__(self, settings: Settings) -> None:
-        if settings.profile != "local":
+        if settings.profile not in LAPTOP_PROFILES:
             raise LocalPersonaProfileError(
-                "seeded dev personas are local-profile only; "
+                "seeded dev personas are laptop-profile only (local, live); "
                 f"refusing to serve them under profile {settings.profile!r}"
             )
         if not settings.profile_explicit:

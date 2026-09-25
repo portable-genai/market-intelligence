@@ -224,7 +224,7 @@ When the UI is served cross-origin from the API during development, the CORS all
 
 | Knob | Default | Meaning |
 |------|---------|---------|
-| `MKT_INTEL_PROFILE` | (none) | Adapter profile: `local`, `gcp`, `platform`, `onprem`. Unset is refused, not `local`: no dev personas, no CORS dev origins. |
+| `MKT_INTEL_PROFILE` | (none) | Adapter profile: `local`, `live`, `gcp`, `platform`, `onprem`. Unset is refused, not `local`: no dev personas, no CORS dev origins. |
 | `MKT_INTEL_IAP_AUDIENCE` | (empty) | Expected IAP JWT audience; required in secure mode. |
 | `MKT_INTEL_CORS_ORIGINS` | localhost dev origins | Comma-separated CORS allowlist; never `*`. Set and empty denies every origin rather than falling back to the dev origins. |
 | `MKT_INTEL_FRAME_ANCESTORS` | `'self'` | Space-separated CSP `frame-ancestors` allowlist (backend). Set and empty means `'none'`, not the default. |
