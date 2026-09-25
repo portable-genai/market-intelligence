@@ -48,7 +48,9 @@ Then open http://localhost:3000.
 |------|------------------|
 | `app/` | The App Router entry: `layout.tsx` (chrome, and the `force-dynamic` the nonce CSP requires) and `page.tsx`. |
 | `components/` | `BriefView` and `CitationList`, the audit-first render of what the backend returned. |
+| `app/ModelPills.tsx` | The two pills at the top right of every page: the model that answered the last request (the configured `generator_model` from `/healthz`, dimmed, until one has), and `Search` when that answer used an online search tool. |
 | `lib/api.ts` | The typed fetch layer against `NEXT_PUBLIC_API_BASE`. |
+| `lib/answer-provenance.mjs` | The one `window.fetch` wrapper the pills read the service's `X-Answered-By` / `X-Search-Used` headers through, for responses from `NEXT_PUBLIC_API_BASE` only, so no call site reports its own model. Pure, covered by `npm test`. |
 | `lib/csp.mjs` | The ONE place the Content-Security-Policy is built. Read by `proxy.ts` and `next.config.mjs`; never duplicated. |
 | `proxy.ts` | Mints the per-request script nonce and sets the CSP on both the request headers (where Next reads the nonce to stamp) and the response headers (what the browser enforces). |
 | `next.config.mjs` | Base path, and the two genuinely static headers. Emits NO CSP, and refuses the build if the layout is not dynamically rendered. |

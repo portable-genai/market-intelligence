@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from hex_service_kit import provenance
+
 from ...config import Settings
 from ...domain.models import Citation, RetrievalQuery, RetrievedPassage, SourceType
 from ._region import resolve_region
@@ -69,6 +71,9 @@ class FileSearchKnowledgeBaseAdapter:
             contents=[types.Content(role="user", parts=[types.Part.from_text(text=query.text)])],
             config=types.GenerateContentConfig(tools=[file_search], temperature=0.0),
         )
+        # Retrieval is compared and cited, so it is PINNED. File Search reads the internal
+        # corpus, not the web, so this notes the model that answered and never a search.
+        provenance.note_model(self._model)
         return self._to_passages(response, top_k)
 
     # ------------------------------------------------------------------ #
