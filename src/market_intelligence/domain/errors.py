@@ -29,6 +29,16 @@ class ResearchEmptyError(MarketIntelError):
     """
 
 
+class ResearchUnavailableError(MarketIntelError):
+    """Raised when the grounded-research backend cannot be reached at all.
+
+    Distinct from :class:`ResearchEmptyError`: the backend was never asked, because what it
+    needs (its client library, a project, credentials, grounding switched on) is missing. The
+    message names what is missing and how to supply it, so the caller can say so plainly
+    instead of failing with a stack trace.
+    """
+
+
 class GroundingDisabledError(MarketIntelError):
     """Raised when public-web grounding is requested but switched off in config."""
 

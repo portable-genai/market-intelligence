@@ -14,12 +14,14 @@ adapter swap rather than a rewrite.
 
 ### How does the profile switch work?
 
-The pure-domain core speaks only to `typing.Protocol` **ports**; four **adapter families**
+The pure-domain core speaks only to `typing.Protocol` **ports**; five **adapter families**
 implement them, and `config/settings.yaml` binds one adapter per port per profile. Setting
 `MKT_INTEL_PROFILE` (or `profile:` in the settings) rebinds the entire stack:
 
 - `local`: a WORKING offline stack (SQLite FTS5 knowledge base, deterministic LLM,
   hash-chained audit). No Google Cloud SDK. The default for dev/test/CI.
+- `live`: the laptop demo with real research. Research is Gemini grounded with Google Search
+  and narration is Gemini; every other port is the `local` adapter.
 - `gcp`: real managed services (Gemini, Agent/Discovery Engine search, Cloud Logging WORM,
   Cloud Trace, Gen AI Evals).
 - `platform`: thin HTTP clients delegating to the sibling horizontal-platform and
@@ -28,7 +30,7 @@ implement them, and `config/settings.yaml` binds one adapter per port per profil
   failing fast with `NotImplementedError`.
 
 No `domain/` code changes across any of these. The contract test
-(`tests/contract/test_port_parity.py`) proves both `local` and `onprem` construct and satisfy
+(`tests/contract/test_port_parity.py`) proves `local`, `live` and `onprem` construct and satisfy
 every port with no cloud SDK installed, and `test_behavioral_parity.py` proves the `local`
 adapters are byte-for-byte deterministic while `onprem` and `platform` placeholders fail fast.
 

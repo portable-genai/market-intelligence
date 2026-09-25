@@ -35,9 +35,10 @@ export default function Page() {
       const status = await api.healthz();
       if (cancelled) return;
       setHealth(status);
-      // The persona picker is a local-profile-only convenience; secure profiles resolve
-      // identity from the IAP assertion, so /v1/personas is empty there.
-      if (status?.profile !== "local") return;
+      // The persona picker is a laptop-profile-only convenience (local, and live, which is
+      // local with Gemini research); secure profiles resolve identity from the IAP assertion,
+      // so /v1/personas is empty there.
+      if (status?.profile !== "local" && status?.profile !== "live") return;
       const list = await api.listPersonas();
       if (cancelled || list.length === 0) return;
       setPersonas(list);

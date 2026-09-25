@@ -7,7 +7,7 @@ matches your role.
 | FAQ | For | Answers |
 |---|---|---|
 | [security-faq.md](security-faq.md) | AppSec / security review | authn, tenancy, secrets, supply chain, the audit chain, what's in vs out of scope |
-| [portability-faq.md](portability-faq.md) | Architecture / cloud / exit planning | no-lock-in, the four profiles, on-prem/sovereign exit, data export |
+| [portability-faq.md](portability-faq.md) | Architecture / cloud / exit planning | no-lock-in, the five profiles, on-prem/sovereign exit, data export |
 | [features-faq.md](features-faq.md) | Product / compliance / delivery | what the agent does, what is deterministic vs LLM, and the boundary with sibling platform systems |
 | [adoption-faq.md](adoption-faq.md) | Engineering leads forking the repo | rename, upstream fixes, extension points, versioning |
 | [compliance-faq.md](compliance-faq.md) | Compliance / model risk | regulatory posture, the no-customer-PII stance, maker-checker, residency, model-risk evidence |

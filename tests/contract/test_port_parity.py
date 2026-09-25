@@ -44,8 +44,10 @@ PORT_PROTOCOLS: dict[str, type] = {
     "review_router": ports.ReviewRouterPort,
 }
 
-# Profiles whose adapters must construct + satisfy the Protocols with no GCP SDK.
-SDK_FREE_PROFILES = ("onprem", "local")
+# Profiles whose adapters must construct + satisfy the Protocols with no GCP SDK. ``live``
+# is here because its two Gemini adapters import the SDK lazily, on the first call: the
+# container builds, and the app starts, on a laptop with no Google SDK installed.
+SDK_FREE_PROFILES = ("onprem", "local", "live")
 
 
 def _settings(profile: str) -> Settings:

@@ -83,9 +83,18 @@ def boolean_setting(name: str, *, default: bool = False) -> bool:
             f"{name} is set to an empty value, which names nothing. Unset it to take the "
             f"documented default ({default!r}), or set it to true or false."
         )
-    value = setting.value.casefold()
+    return parse_boolean(name, setting.value)
+
+
+def parse_boolean(name: str, raw: str) -> bool:
+    """Parse an already-resolved boolean string strictly: ``false`` is False, not truthy.
+
+    For values that arrive as text by another route, such as a ``${VAR:-true}`` token the
+    settings loader has already interpolated. ``name`` only labels the error.
+    """
+    value = raw.strip().casefold()
     if value in _TRUE:
         return True
     if value in _FALSE:
         return False
-    raise ValueError(f"{name} must be one of {sorted(_TRUE | _FALSE)}, got {setting.value!r}")
+    raise ValueError(f"{name} must be one of {sorted(_TRUE | _FALSE)}, got {raw!r}")

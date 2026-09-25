@@ -30,17 +30,18 @@ portable across vendors, and honest about its boundaries.
        +---------------+----------------+----------------+--------------------+
 ```
 
-## The four profiles
+## The five profiles
 
 | Profile | Role | Backing |
 |---|---|---|
 | `gcp` | primary, managed | Gemini grounded with Google Search, File Search, Model Armor, Cloud Logging WORM, Cloud Trace, Gen AI eval. SDK imports are lazy. |
 | `local` | dev / test / CI default | a WORKING offline stack: a deterministic deep-research synthesizer over a seeded SQLite FTS5 corpus, a deterministic schema-driven LLM, a heuristic guardrail, append-only audit, no-op tracer, in-process registry / tool-catalog, the offline eval gate. SDK-free and seedable. |
+| `live` | laptop demo with real research | `adapters/live/research.py` wraps the `gcp` grounded-research adapter so missing Gemini credentials surface as `ResearchUnavailableError` (HTTP 503), and `llm` binds the `gcp` Gemini adapter; every other port is the `local` adapter, with the same loopback bind, seeded personas and CORS dev origins. |
 | `platform` | shared-platform reuse | thin HTTP clients to the shared `agent-guardrail-gateway`, `enterprise-knowledge-base`, `agent-registry`, `model-quality-gate` eval, `agent-observability`. |
 | `onprem` | portability proof | fail-fast `NotImplementedError` stubs satisfying the same Protocols. |
 
 Switching the whole backend is a one-line `profile` change in `config/settings.yaml` (or
-the `MKT_INTEL_PROFILE` env var). The contract test proves the local and onprem families
+the `MKT_INTEL_PROFILE` env var). The contract test proves the local, live and onprem families
 satisfy every port Protocol, so the profiles never drift.
 
 ## Why the engines are deterministic

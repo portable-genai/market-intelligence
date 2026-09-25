@@ -25,7 +25,7 @@ from hex_service_kit.web import add_loopback_exposure_guard
 
 from ..adapters.controls import RecordingReviewRouter
 from ..config import end_user_auth_kind
-from ..domain.errors import GuardrailBlockedError, ResearchEmptyError
+from ..domain.errors import GuardrailBlockedError, ResearchEmptyError, ResearchUnavailableError
 from ..domain.identity import IdentityError
 from ..domain.models import BriefRequest, Market, Vertical
 from ..domain.serialization import to_jsonable
@@ -149,10 +149,15 @@ def _cors_origins() -> list[str]:
     _refuse_wildcard(
         [origin.strip() for origin in configured.split(",") if origin.strip()], _CORS_ORIGINS_ENV
     )
+    settings = deps.get_settings()
     return cors_allowlist(
-        deps.get_settings().exposure_profile,
+        settings.exposure_profile,
         origins_env=_CORS_ORIGINS_ENV,
         dev_origins=tuple(_DEV_ORIGINS),
+        # The dev-origin fallback belongs to every DELIBERATE laptop profile, ``live`` included;
+        # naming the active profile as the kit's local one grants it exactly there and nowhere
+        # else, and an unconsented run (exposure profile ``unconfigured``) is never laptop.
+        local_profile=settings.exposure_profile if settings.laptop_posture else "local",
     )
 
 
@@ -311,6 +316,8 @@ def build_brief(body: BriefRequestModel, principal: CurrentPrincipal) -> dict:
         raise HTTPException(status_code=400, detail=f"guardrail blocked: {exc}") from exc
     except ResearchEmptyError as exc:
         raise HTTPException(status_code=404, detail=f"no grounding evidence: {exc}") from exc
+    except ResearchUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=f"research unavailable: {exc}") from exc
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
     payload: dict = to_jsonable(brief)
@@ -328,6 +335,8 @@ def competitor_analysis(body: BriefRequestModel, principal: CurrentPrincipal) ->
         raise HTTPException(status_code=400, detail=f"guardrail blocked: {exc}") from exc
     except ResearchEmptyError as exc:
         raise HTTPException(status_code=404, detail=f"no grounding evidence: {exc}") from exc
+    except ResearchUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=f"research unavailable: {exc}") from exc
     except NotImplementedError as exc:
         raise HTTPException(status_code=501, detail=str(exc)) from exc
     return to_jsonable(analysis)
