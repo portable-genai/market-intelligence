@@ -95,7 +95,7 @@ def test_an_unconsented_run_is_never_the_laptop_posture() -> None:
     assert Settings(profile="gcp").laptop_posture is False
 
 
-def test_the_banner_names_the_gemini_model_that_answers_under_live() -> None:
+def test_the_model_pill_names_the_gemini_model_that_answers_under_live() -> None:
     settings = dataclasses.replace(Settings.load(CONFIG_PATH), profile="live")
     assert settings.generator_model == settings.models.reasoning
     assert settings.generator_model.startswith("gemini-")

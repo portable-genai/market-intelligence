@@ -14,6 +14,8 @@ import json
 import re
 from typing import Any
 
+from hex_service_kit import provenance
+
 from ...config import Settings
 from ...domain.models import LlmRequest, LlmResponse, TokenUsage
 
@@ -25,6 +27,11 @@ def _schema_properties(schema: dict | None) -> dict[str, Any]:
         return {}
     props = schema.get("properties")
     return props if isinstance(props, dict) else {}
+
+
+#: What this stub answers as, for the console's model pill: the name ``generator_model`` reports
+#: under ``local``, so the pill before and after an answer agree.
+STUB_MODEL = "deterministic-offline-stub"
 
 
 class LocalDeterministicLLMAdapter:
@@ -39,6 +46,7 @@ class LocalDeterministicLLMAdapter:
         self._triage_model = settings.models.triage or self.TRIAGE_MODEL
 
     def generate(self, request: LlmRequest) -> LlmResponse:
+        provenance.note_model(STUB_MODEL)
         source_ids = self._source_ids_from_request(request)
         body = self._body_for_schema(request.response_schema, source_ids)
         return LlmResponse(
@@ -50,6 +58,7 @@ class LocalDeterministicLLMAdapter:
         )
 
     def classify(self, text: str, labels: list[str]) -> str:
+        provenance.note_model(STUB_MODEL)
         return labels[0] if labels else ""
 
     # ------------------------------------------------------------------ #

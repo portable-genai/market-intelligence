@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ProvenanceBanner } from "./ProvenanceBanner";
+import { ModelPills } from "./ModelPills";
 import "./globals.css";
 
 // Required by the nonce CSP, not a performance preference. `proxy.ts` mints a per-request
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen">
-        <ProvenanceBanner />
+        <ModelPills />
         {embed ? <main className="p-4">{children}</main> : children}
       </body>
     </html>

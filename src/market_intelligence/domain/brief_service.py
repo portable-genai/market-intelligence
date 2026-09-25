@@ -285,10 +285,13 @@ class MarketBriefService:
             f"{request.market.value}, vertical {request.vertical.value}. Use ONLY the "
             f"evidence below; cite source ids you used.\n\nEVIDENCE:\n{evidence}"
         )
+        # Narration over an already-computed result is drafting, so it samples freely: no
+        # temperature is sent. The numbers it narrates were decided by the deterministic engines.
         response = self._llm.generate(
             LlmRequest(
                 messages=(LlmMessage(role="user", content=prompt),),
                 response_schema=_SUMMARY_SCHEMA,
+                temperature=None,
             )
         )
         return self._extract_summary(response.text, request)

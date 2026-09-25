@@ -13,6 +13,11 @@ extracted :class:`Claim`) and the previous/current :class:`CompetitorMove` snaps
 deterministic diff engine compares. It never synthesises the brief itself: the LLM only
 researches and extracts, the deterministic engines decide.
 
+Both calls attach the ``google_search`` tool, so after each successful call the adapter notes
+the model it called and that it searched (:mod:`hex_service_kit.provenance`); the console's
+pills show both. Both are PINNED at temperature 0.0: the output is structured extraction that
+the deterministic dedup, diff and trend engines consume and compare.
+
 The residency region is resolved from the requested market and **validated** against the
 per-market allow-list (JP -> ``asia-northeast1``, AU -> ``australia-southeast1``, SG ->
 ``asia-southeast1``), so a research call can never cross the configured residency boundary.
@@ -25,6 +30,8 @@ from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING, Any
+
+from hex_service_kit import provenance
 
 from ...config import Settings
 from ...domain.models import (
@@ -153,6 +160,7 @@ class GeminiDeepResearchAdapter:
                 response_schema=_RESEARCH_SCHEMA,
             ),
         )
+        self._note_grounded_answer()
         return self._to_result(query, response)
 
     def competitor_snapshots(
@@ -173,10 +181,20 @@ class GeminiDeepResearchAdapter:
                 response_schema=_SNAPSHOT_SCHEMA,
             ),
         )
+        self._note_grounded_answer()
         payload = self._parse(response)
         previous = self._to_moves(payload.get("previous", []), market, vertical)
         current = self._to_moves(payload.get("current", []), market, vertical)
         return previous, current
+
+    def _note_grounded_answer(self) -> None:
+        """Record, for the console's pills, the model that answered and that it searched.
+
+        Called only after a call that attached the ``google_search`` tool returned, so a pill
+        never claims a search that was not attached or a call that failed.
+        """
+        provenance.note_model(self._model)
+        provenance.note_search()
 
     # ------------------------------------------------------------------ #
     # Prompt construction
