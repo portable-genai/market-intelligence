@@ -22,6 +22,7 @@ and at runtime if pointed off-allowlist.
 | `variables.tf` | `region` validated against `allowed_regions` (both default to `asia-southeast1`); per-tenant knobs only |
 | `terraform.tfvars.example` | fictional in-country sample values |
 | `apis.tf` | enables only the managed services `market-intelligence`'s gcp adapters use, plus core infra |
+| `model_armor.tf` | the `mkt-intel-guardrail` Model Armor template the gcp guardrail adapter screens through (matches `config/settings.yaml` `model_armor.template_id`); malicious-URI filtering and multi-language detection gate on `var.model_armor_full_capabilities` (regional capabilities, off by default outside regions that serve them) |
 | `org_policy.tf` | `gcp.resourceLocations` allowlist, disable SA-key creation, no external IP, uniform bucket access |
 | `kms.tf` | one regional CMEK key + a per-service IAM binding (CMEK does not cascade) |
 | `vpc_sc.tf` | service perimeter, dry-run first (`vpc_sc_enforce = false`) |
