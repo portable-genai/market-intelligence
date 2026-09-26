@@ -70,6 +70,23 @@ variable "zone" {
   }
 }
 
+variable "model_armor_full_capabilities" {
+  type        = bool
+  default     = true
+  description = <<-EOT
+    Whether the guardrail template asks for the capabilities that are not served in every
+    region: the malicious-URI filter and multi-language detection.
+
+    True by default, because a deployment should get the whole guardrail unless it has a reason
+    not to. asia-southeast1 serves neither, and Model Armor does not degrade: it refuses the
+    template with CAPABILITY_NOT_SUPPORTED, so the stack does not deploy at all. A deployment
+    there sets this false, which narrows the guardrail and is a disclosure to make in the
+    deployment's posture record rather than a silent downgrade. JP (asia-northeast1) and AU
+    (australia-southeast1) deploys of this stack's per-market variant confirm capability support
+    for their own region before leaving this at the default.
+  EOT
+}
+
 variable "retention_days" {
   description = "WORM audit-log retention in days. Default ~7 years. Lock is irreversible."
   type        = number
