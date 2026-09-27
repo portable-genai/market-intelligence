@@ -130,5 +130,6 @@ returned, and the console says it is not queued for review.
 | A response says `review_routing: "failed"` | The review console was unreachable or refused the hand-off; the log names the exception type | Restore the console; the brief is not queued, so resubmit it once the console answers |
 | `ResearchEmptyError` on a brief (HTTP 404) | Deep research and the corpus both returned nothing after dedup | Broaden the topic, confirm grounding is enabled, or seed the internal corpus |
 | Guardrail block on a benign brief (HTTP 400) | Model Armor template too strict | Tune the `model_armor` template filter confidence levels |
+| Guardrail block reason "Model Armor returned no complete filter decision" | Model Armor ran only some filters (`invocationResult` `PARTIAL` or `FAILURE`), usually on input past a filter's token limit or in an unsupported language; the adapter fails closed rather than pass unscreened text | Shorten the input, or check the template's filter settings; the block is deliberate and is not tuned away |
 | CORS error from the embedded UI | Origin not in the per-tenant allowlist | Add the parent origin to `MKT_INTEL_CORS_ORIGINS` (never `*`) |
 | VPC-SC denies the apply | Runner identity outside the perimeter | Apply with `vpc_sc_enforce = false`, add the identity to `operator_members`, re-apply true |

@@ -295,6 +295,9 @@ class KnowledgeBaseSettings:
 class ModelArmorSettings:
     template_id: str = "mkt-intel-guardrail"
     host: str = "modelarmor.asia-southeast1.rep.googleapis.com"
+    #: The deadline on every sanitize call. A screen that has not answered by then raises,
+    #: and the caller refuses the request; it never waits unbounded or allows by default.
+    timeout_seconds: float = 30.0
 
 
 #: The environment variables that switch each cheap runtime control, read in three states:
