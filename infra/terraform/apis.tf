@@ -6,7 +6,7 @@
 #         config/settings.yaml are: deep_research + gemini_llm + genai_eval (aiplatform),
 #         file_search_kb (discoveryengine, via the GenAI File Search store),
 #         model_armor_guardrail (modelarmor), cloud_logging_audit (logging),
-#         cloud_trace_tracer (cloudtrace), a2a_registry + mcp_tool_catalog (aiplatform).
+#         tracer (cloudtrace, through the agent-observability collector), a2a_registry + mcp_tool_catalog (aiplatform).
 #         There is NO BigQuery, Document AI, DLP, Cloud Storage or AlloyDB adapter in this
 #         repo, so those APIs are intentionally absent.
 #   Residency (SPEC 2): enabling these APIs is a prerequisite for the regional,

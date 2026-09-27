@@ -155,8 +155,8 @@ adapters:
     live: market_intelligence.adapters.local.audit:LocalAppendOnlyAuditAdapter
     onprem: market_intelligence.adapters.onprem.audit:OnPremAuditAdapter
   tracer:
-    gcp: market_intelligence.adapters.gcp.cloud_trace_tracer:CloudTraceTracerAdapter
-    platform: market_intelligence.adapters.gcp.cloud_trace_tracer:CloudTraceTracerAdapter
+    gcp: market_intelligence.adapters.gcp.tracer:CloudTracerAdapter
+    platform: market_intelligence.adapters.gcp.tracer:CloudTracerAdapter
     local: market_intelligence.adapters.local.tracer:LocalNoopTracerAdapter
     live: market_intelligence.adapters.local.tracer:LocalNoopTracerAdapter
     onprem: market_intelligence.adapters.onprem.tracer:OnPremTracerAdapter

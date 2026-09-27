@@ -45,7 +45,7 @@ GCP_ADAPTERS: dict[str, tuple[str, type]] = {
         ports.AuditSinkPort,
     ),
     "tracer": (
-        "market_intelligence.adapters.gcp.cloud_trace_tracer:CloudTraceTracerAdapter",
+        "market_intelligence.adapters.gcp.tracer:CloudTracerAdapter",
         ports.ObservabilityTracerPort,
     ),
     "evaluation": (
