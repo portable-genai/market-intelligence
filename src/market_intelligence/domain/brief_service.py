@@ -110,7 +110,7 @@ class MarketBriefService:
     ) -> MarketBrief:
         as_of = as_of or date.today()
         with self._span("brief.build", market=request.market.value):
-            self._guard(request.topic, Direction.INPUT, actor)
+            self._guard(self._request_text(request), Direction.INPUT, actor)
 
             result = self._research.research(
                 ResearchQuery(
@@ -155,7 +155,9 @@ class MarketBriefService:
                 citations=citations,
                 requires_human_review=True,
             )
-            self._guard(summary, Direction.OUTPUT, actor)
+            # Everything the caller is handed as prose is screened, not only the summary: the key
+            # claims carry web-search text and the analysis narrates competitor moves.
+            self._guard(self._brief_text(brief), Direction.OUTPUT, actor)
             self._record(brief, actor)
             # Rule R8: the escalation is not left as a boolean — the already-assembled, already-
             # audited brief is handed to the human-review-console maker-checker console (the audit
@@ -172,7 +174,7 @@ class MarketBriefService:
     ) -> CompetitorAnalysis:
         as_of = as_of or date.today()
         with self._span("competitor.analysis", market=request.market.value):
-            self._guard(request.topic, Direction.INPUT, actor)
+            self._guard(self._request_text(request), Direction.INPUT, actor)
             result = self._research.research(
                 ResearchQuery(
                     topic=request.topic,
@@ -184,6 +186,7 @@ class MarketBriefService:
             )
             claims = self._dedup.dedup_claims(result.claims)
             analysis = self._competitor_analysis(request, claims, as_of)
+            self._guard(self._analysis_text(analysis), Direction.OUTPUT, actor)
             self._audit.record(
                 AuditEvent(
                     action="competitor_analysis",
@@ -285,6 +288,9 @@ class MarketBriefService:
             f"{request.market.value}, vertical {request.vertical.value}. Use ONLY the "
             f"evidence below; cite source ids you used.\n\nEVIDENCE:\n{evidence}"
         )
+        # The evidence is web-search and corpus text, so the prompt the model is actually sent is
+        # screened, not only the topic the caller typed.
+        self._guard(prompt, Direction.INPUT, actor)
         # Narration over an already-computed result is drafting, so it samples freely: no
         # temperature is sent. The numbers it narrates were decided by the deterministic engines.
         response = self._llm.generate(
@@ -332,6 +338,23 @@ class MarketBriefService:
     # ------------------------------------------------------------------ #
     # Cross-cutting: guardrail, tracing, audit
     # ------------------------------------------------------------------ #
+    @staticmethod
+    def _request_text(request: BriefRequest) -> str:
+        """Every free-text field the caller supplies, rendered for the INPUT screen."""
+        return "\n".join((request.topic, *request.competitors))
+
+    @staticmethod
+    def _analysis_text(analysis: CompetitorAnalysis) -> str:
+        """The competitor analysis's prose, rendered for the OUTPUT screen."""
+        return "\n".join((analysis.narrative, *(item.statement for item in analysis.swot.items)))
+
+    def _brief_text(self, brief: MarketBrief) -> str:
+        """Every prose field of a brief, rendered for the OUTPUT screen."""
+        lines = [brief.summary, *(claim.text for claim in brief.key_claims)]
+        if brief.competitor_analysis is not None:
+            lines.append(self._analysis_text(brief.competitor_analysis))
+        return "\n".join(lines)
+
     def _guard(self, text: str, direction: Direction, actor: str) -> None:
         verdict: GuardrailVerdict = self._guardrail.screen(text, direction)
         if not verdict.allowed:
