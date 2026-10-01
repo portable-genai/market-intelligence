@@ -17,7 +17,7 @@ zone            = "asia-southeast1-a"
 # asia-southeast1 serves neither the malicious-URI filter nor multi-language detection on
 # Model Armor, so a Singapore deploy declines them explicitly (default is true, the full
 # template) and discloses the narrowed guardrail in its posture record:
-# model_armor_full_capabilities = false
+model_armor_full_capabilities = false # asia-southeast1 refuses the malicious-URI filter; state true in a region that serves it
 
 # Fully-qualified API image in Artifact Registry (asia-southeast1).
 container_image = "asia-southeast1-docker.pkg.dev/acme-mkt-intel-sg-prod/mkt/market-intelligence:0.1.0"
